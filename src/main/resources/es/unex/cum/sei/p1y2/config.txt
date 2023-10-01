@@ -1,0 +1,8 @@
+#comienza el fichero de configuracion de P1 SI 2023
+
+#probando los comandos
+
+# formatear la entrada
+& ficherosalida quijoteformateado.txt
+& ficheroentrada input.txt
+& formateaentrada
