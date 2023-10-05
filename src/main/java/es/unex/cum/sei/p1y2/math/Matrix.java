@@ -206,9 +206,13 @@ public class Matrix {
     public String toString() {
         StringBuilder builder = new StringBuilder();
         for (int i = 0; i < numRows; i++) {
-            builder.append(Arrays.toString(data[i])).append('\n');
+            builder.append(Arrays.toString(data[i]));
+            if (i < numRows - 1) {
+                builder.append('\n');
+            }
         }
         return builder.toString();
     }
+
 
 }

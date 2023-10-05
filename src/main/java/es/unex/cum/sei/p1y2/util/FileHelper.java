@@ -6,26 +6,27 @@ import java.io.*;
 
 public class FileHelper {
 
-    private String getResourceFilePath(String filePath) {
-        return "es/unex/cum/sei/p1y2/" + filePath;
-    }
-
-    public String readFromFile(String filePath) throws IOException {
+    public String readFromFile(String fileName) throws IOException {
         StringBuilder content = new StringBuilder();
-        try (InputStream inputStream = getClass().getClassLoader().getResourceAsStream(getResourceFilePath(filePath));
-             BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream))) {
+        try (BufferedReader reader = new BufferedReader(new FileReader(fileName))) {
             String line;
+            boolean isFirstLine = true;  // Agregamos una bandera para controlar la primera línea
             while ((line = reader.readLine()) != null) {
-                content.append(line).append("\n");
+                if (!isFirstLine) {
+                    content.append("\n");  // Agrega un salto de línea solo si no es la primera línea
+                }
+                content.append(line);
+                isFirstLine = false;  // Después de la primera línea, cambiamos la bandera
             }
         }
         return content.toString();
     }
 
-    public void formatAndSaveToFile(String input, String outputFile) throws IOException {
+
+    public void formatAndSaveToFile(String content, String outputFile) throws IOException {
         StringBuilder formattedContent = new StringBuilder();
 
-        for (char c : input.toCharArray()) {
+        for (char c : content.toCharArray()) {
             if (!hasAccentMark(c)) {
                 char normalizedChar = Character.toUpperCase(c);
 
@@ -35,7 +36,7 @@ public class FileHelper {
             }
         }
 
-        saveToFile(outputFile, String.valueOf(formattedContent));
+        saveToFile(String.valueOf(formattedContent), outputFile);
     }
 
     private boolean isInTheAlphabet(char c) {
@@ -47,13 +48,9 @@ public class FileHelper {
         return c == 'á' || c == 'é' || c == 'í' || c == 'ó' || c == 'ú' || c == 'ü';
     }
 
-    public void saveToFile(String fileName, String content) throws IOException {
-        String filePath = getResourceFilePath(fileName);
-        File file = new File(filePath);
-
-        // Asegurarse de que el directorio exista
-        file.getParentFile().mkdirs();
-
+    public void saveToFile(String content, String fileName) throws IOException {
+        File file = new File(fileName);
+        //file.getParentFile().mkdirs();
         try (BufferedWriter writer = new BufferedWriter(new FileWriter(file))) {
             writer.write(content);
         }
@@ -62,38 +59,23 @@ public class FileHelper {
 
 
     public Matrix getMatrixFromFile(String fileName) throws IOException {
-        int[][] data = new int[3][3];
-        BufferedReader reader = new BufferedReader(new InputStreamReader(getClass().getClassLoader().getResourceAsStream(getResourceFilePath(fileName))));
+        String fileContent = readFromFile(fileName);
+        String[] tokens = fileContent.split("\\s+");
 
-        String line = reader.readLine(); // Read the entire line
-
-        if (line != null) {
-            String[] tokens = line.split(" ");
-
-            if (tokens.length == 9) {
-                int index = 0;
-                for (int i = 0; i < 3; i++) {
-                    for (int j = 0; j < 3; j++) {
-                        data[i][j] = Integer.parseInt(tokens[index++]);
-                    }
-                }
-            } else {
-                System.err.println("Invalid input format. The file should contain 9 integers separated by spaces.");
-            }
-        } else {
-            System.err.println("Empty file");
+        if (tokens.length != 9) {
+            System.err.println("Invalid input format. The file should contain 9 integers separated by spaces.");
+            return null;
         }
 
-        reader.close();
-        return new Matrix(data);
-    }
+        int[][] data = new int[3][3];
+        int index = 0;
+        for (int i = 0; i < 3; i++) {
+            for (int j = 0; j < 3; j++) {
+                data[i][j] = Integer.parseInt(tokens[index++]);
+            }
+        }
 
-    public static void main(String[] args) throws IOException {
-        FileHelper fileHelper = new FileHelper();
-        String readed = fileHelper.readFromFile("input.txt");
-        System.out.println(readed);
-        //fileHelper.formatAndSaveToFile("input.txt", "output.txt");
-        fileHelper.saveToFile("output.txt", readed);
+        return new Matrix(data);
     }
 
 }

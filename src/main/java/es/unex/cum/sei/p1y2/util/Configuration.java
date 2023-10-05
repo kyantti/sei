@@ -2,9 +2,8 @@ package es.unex.cum.sei.p1y2.util;
 
 import es.unex.cum.sei.p1y2.Main;
 
+import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
 
 public class Configuration {
     private static final String FLAG_CODIFICA = "codifica";
@@ -15,11 +14,14 @@ public class Configuration {
     private boolean encryptionModeEnabled;
     private boolean decryptionModeEnabled;
     private boolean debugModeEnabled;
-    private List<String> delayedCommands = new ArrayList<>();
 
-    public Configuration(String[] args) {
-        parseArguments(args);
-        executeDelayedCommands();
+    private Configuration() {
+        // This constructor is empty to prevent instantiation
+    }
+
+    public static void createConfiguration(String[] args) {
+        Configuration config = new Configuration();
+        config.parseArguments(args);
     }
 
     public void enableEncryptionMode(){
@@ -54,7 +56,8 @@ public class Configuration {
                     if (i + 1 < args.length) {
                         parseConfigFile(args[i + 1]);
                         i++;
-                    } else {
+                    }
+                    else {
                         System.err.println("Falta el argumento del fichero de configuracion");
                         printUsage();
                         System.exit(1);
@@ -74,21 +77,28 @@ public class Configuration {
     }
 
     private void parseConfigFile(String configFile) {
+        Main.debugIfEnabled("Leyendo y ejecutando el fichero de configuración: " + configFile, debugModeEnabled);
+
         try {
             String configContents = Main.getFileHelper().readFromFile(configFile);
+
             String[] lines = configContents.split("\\n");
 
             for (String line : lines) {
+
                 line = line.trim();
+
                 if (line.isEmpty() || line.startsWith("#")) {
                     // Skip empty lines and comments
                     continue;
                 }
                 if (line.startsWith("@")) {
                     parseFlag(line);
-                } else if (line.startsWith("&")) {
+                }
+                else if (line.startsWith("&")) {
                     parseCommand(line);
-                } else {
+                }
+                else {
                     System.err.println("Linea invalida en el archivo de configuracion " + line);
                 }
             }
@@ -101,6 +111,9 @@ public class Configuration {
 
 
     private void parseFlag(String line) {
+
+        Main.debugIfEnabled("Procesando la linea: " + line, debugModeEnabled);
+
         String[] parts = line.split("\\s+");
         if (parts.length < 3) {
             throw new IllegalArgumentException("Formato de bandera invalido: " + line);
@@ -112,7 +125,7 @@ public class Configuration {
         switch (flagName) {
             case FLAG_CODIFICA -> handleCipheringFlag(flagValue);
             case FLAG_TRAZA -> handleDebugFlag(flagValue);
-            default -> throw new IllegalArgumentException("Bander invalida: " + flagName);
+            default -> throw new IllegalArgumentException("Bandera invalida: " + flagName);
         }
     }
 
@@ -129,14 +142,19 @@ public class Configuration {
     private void handleDebugFlag(String flagValue) {
         if (flagValue.equals("ON")) {
             enableDebugMode();
-        } else if (flagValue.equals("OFF")) {
+        }
+        else if (flagValue.equals("OFF")) {
             disableDebugMode();
-        } else {
+        }
+        else {
             throw new IllegalArgumentException("Valor incorrecto para la bandera 'traza':" + flagValue);
         }
     }
 
     private void parseCommand(String line) {
+
+        Main.debugIfEnabled("Procesando la linea: " + line, debugModeEnabled);
+
         String[] parts = line.split("\\s+");
 
         if (parts.length < 2) {
@@ -147,42 +165,25 @@ public class Configuration {
         String commandName = parts[1].toLowerCase();
 
         if (parts.length == 2) {
-            // Si el comando necesita ser demorado, agregalo a la lista
-            if (isCommandToBeDelayed(commandName)) {
-                delayedCommands.add(commandName);
-            } else {
-                handleSingleWordCommand(commandName);
-            }
-        } else if (parts.length == 3) {
+            handleSingleWordCommand(commandName);
+        }
+        else if (parts.length == 3) {
             String fileName = parts[2];
             handleTwoWordCommand(commandName, fileName);
-        } else {
-            System.err.println("Invalid command format: " + line);
         }
-    }
-
-    // ...
-
-    private boolean isCommandToBeDelayed(String commandName) {
-        return commandName.equals("formateaentrada");
-    }
-
-    // Luego de procesar el archivo de entrada, ejecuta comandos demorados
-    private void executeDelayedCommands() {
-        for (String command : delayedCommands) {
-            handleSingleWordCommand(command);
+        else {
+            System.err.println("Invalid command format: " + line);
         }
     }
 
     private void handleSingleWordCommand(String commandName) {
         switch (commandName) {
-            case "formateaentrada" -> {
-                Main.formatInput(inputFile, outputFile, debugModeEnabled);
-            }
+            case "formateaentrada" -> Main.formatInput(inputFile, outputFile, debugModeEnabled);
             case "hill" -> {
                 if (encryptionModeEnabled) {
                     Main.encrypt(inputFile, keyFile, outputFile, debugModeEnabled);
-                } else if (decryptionModeEnabled) {
+                }
+                else if (decryptionModeEnabled) {
                     Main.decrypt(inputFile, keyFile, outputFile, debugModeEnabled);
                 }
             }
@@ -193,17 +194,32 @@ public class Configuration {
     private void handleTwoWordCommand(String commandName, String fileName) {
         switch (commandName) {
             case "ficheroentrada" -> inputFile = fileName;
-            case "ficherosalida" -> outputFile = fileName;
-            case "clave" -> keyFile = fileName;
+            case "ficherosalida" -> {
+                if (fileExists(fileName)) {
+                    System.err.println("¡Aviso! El archivo de salida ya existe, será reescrito: " + fileName);
+                }
+                outputFile = fileName;
+            }
+            case "clave" -> {
+                if (!fileExists(fileName)) {
+                    System.err.println("¡Error! No existe el fichero de entrada para la clave: " + fileName);
+                }
+                keyFile = fileName;
+            }
             default -> System.err.println("Comando invalido: " + commandName);
         }
     }
 
+    private boolean fileExists(String fileName) {
+        File file = new File(fileName);
+        return file.exists();
+    }
+
     private void printUsage() {
-        System.out.println("Usage: P1y2_si2023 [-f configFile] | [-h]");
+        Main.printUsage();
     }
 
     private void printHelp() {
-        System.out.println("Ayuda");
+        Main.printHelp();
     }
 }

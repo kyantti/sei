@@ -5,7 +5,7 @@ import es.unex.cum.sei.p1y2.math.Matrix;
 
 import java.util.Random;
 
-public class HillCipher {
+public class HillCipher implements  Cipher{
 
     private String divideIntoTriplets(String message) {
         StringBuilder result = new StringBuilder();
@@ -57,7 +57,7 @@ public class HillCipher {
                 int element = c.getElement(row, col);
                 char encryptedChar = Alphabet.SPANISH.charAt(element);
                 encrypted.append(encryptedChar);
-                }
+            }
         }
 
         return encrypted.toString();

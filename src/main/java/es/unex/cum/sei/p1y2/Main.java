@@ -10,7 +10,7 @@ import java.io.IOException;
 public class Main {
     private static HillCipher hillCipher;
     private static FileHelper fileHelper;
-    private Configuration configuration;
+
     public static FileHelper getFileHelper() {
         return fileHelper;
     }
@@ -18,7 +18,11 @@ public class Main {
     public Main(String[] args){
         hillCipher = new HillCipher();
         fileHelper = new FileHelper();
-        configuration = new Configuration(args);
+        Configuration.createConfiguration(args);
+    }
+    private static Matrix getDefaulKeytMatrix(){
+        int [][] data = {{1, 2, 3}, {0, 4, 5}, {1, 0, 6}};
+        return new Matrix(data);
     }
     public static void formatInput(String inputFile, String outputFile, boolean debugModeEnabled){
 
@@ -33,7 +37,7 @@ public class Main {
             }
         }
         catch (IOException ioException){
-            System.err.println(ioException);
+            ioException.printStackTrace();
         }
 
     }
@@ -41,18 +45,26 @@ public class Main {
     public static void encrypt(String inputFile, String keyMatrixFile, String outputFile, boolean debugModeEnabled){
         try{
             String textToEncrypt = fileHelper.readFromFile(inputFile);
-            Matrix keyMatrix = fileHelper.getMatrixFromFile(keyMatrixFile);
+            Matrix keyMatrix;
+
+            if (keyMatrixFile != null){
+                keyMatrix = fileHelper.getMatrixFromFile(keyMatrixFile);
+            }
+            else{
+                keyMatrix = getDefaulKeytMatrix();
+            }
+
             String encryptedText = hillCipher.encrypt(textToEncrypt, keyMatrix);
             fileHelper.saveToFile(encryptedText, outputFile);
 
             if (debugModeEnabled){
                 System.out.println("Texto a cifrar: " + textToEncrypt);
-                System.out.println("Matriz clave: " + keyMatrix.toString());
+                System.out.println("Matriz clave:\n" + keyMatrix.toString());
                 System.out.println("Texto cifrado: " + encryptedText);
             }
         }
         catch (IOException | IllegalArgumentException ioException){
-            System.out.println(ioException);
+            ioException.printStackTrace();
         }
 
     }
@@ -60,22 +72,51 @@ public class Main {
     public static void decrypt(String inputFile, String keyMatrixFile, String outputFile, boolean debugModeEnabled){
         try{
             String textToDecrypt = fileHelper.readFromFile(inputFile);
-            Matrix keyMatrix = fileHelper.getMatrixFromFile(keyMatrixFile);
+            Matrix keyMatrix;
+            if (keyMatrixFile != null){
+                keyMatrix = fileHelper.getMatrixFromFile(keyMatrixFile);
+            }
+            else{
+                keyMatrix = getDefaulKeytMatrix();
+            }
             String decryptedText = hillCipher.decrypt(textToDecrypt, keyMatrix);
-            fileHelper.saveToFile(outputFile, decryptedText);
+            fileHelper.saveToFile(decryptedText, outputFile);
 
             if (debugModeEnabled){
                 System.out.println("Texto a descifrar: " + textToDecrypt);
-                System.out.println("Matriz clave: " + keyMatrix);
+                System.out.println("Matriz clave:\n" + keyMatrix.modularInverse(27));
                 System.out.println("Texto descifrado: " + decryptedText);
             }
         }
         catch (IOException | IllegalArgumentException ioException){
-            System.out.println(ioException);
+            ioException.printStackTrace();
+        }
+    }
+    public static void debugIfEnabled(String line, boolean debugModeEnabled) {
+        if (debugModeEnabled){
+            System.out.println(line);
         }
     }
 
-    public static void main(String[] args) {
-        Main main = new Main(args);
+    public static void printUsage() {
+        System.out.println("""
+                La sintaxis del programa debe ser:
+                P1_si2023 [-f fichero] | [-h]
+                El argumento asociado a –f es el fichero de configuracion
+                El argumento –h indica ayuda  y hará que el programa informe al usuario de cuáles son sus posibilidades respecto al contenido y los parametros.""");
     }
+
+    public static void printHelp() {
+        System.out.println("""
+                La sintaxis del programa debe ser:
+                P1_si2023 [-f fichero] | [-h]
+                El argumento asociado a –f es el fichero de configuracion
+                El argumento –h indica ayuda  y hará que el programa informe al usuario de cuáles son sus posibilidades respecto al contenido y los parametros.
+                Si no se especifica el fichero no hará nada""");
+    }
+
+    public static void main(String[] args) {
+        new Main(args);
+    }
+
 }

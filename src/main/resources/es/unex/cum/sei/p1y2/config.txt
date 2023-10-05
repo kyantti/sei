@@ -3,6 +3,6 @@
 #probando los comandos
 
 # formatear la entrada
-& ficherosalida quijoteformateado.txt
+& ficherosalida output.txt
 & ficheroentrada input.txt
 & formateaentrada
