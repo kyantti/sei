@@ -3,6 +3,24 @@
 #probando los comandos
 
 # formatear la entrada
-& ficherosalida output.txt
-& ficheroentrada input.txt
+& ficherosalida quijoteFormateado.txt
+& ficheroentrada quijote.txt
+@ traza OFF
 & formateaentrada
+
+& clave clave.txt
+#Fichero a codificar
+& ficheroentrada quijoteFormateado.txt
+& ficherosalida quijoteCifrado.txt
+@ codifica ON
+& hill
+
+#Vamos a recuperar el original descifrando
+& ficheroentrada quijoteCifrado.txt
+& ficherosalida quijoteRestaurado.txt
+@ codifica OFF
+& hill
+
+
+
+# fin del fichero de configuracion
