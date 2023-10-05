@@ -16,7 +16,7 @@ public class Configuration {
     private boolean debugModeEnabled;
 
     private Configuration() {
-        // This constructor is empty to prevent instantiation
+
     }
 
     public static void createConfiguration(String[] args) {
@@ -89,7 +89,6 @@ public class Configuration {
                 line = line.trim();
 
                 if (line.isEmpty() || line.startsWith("#")) {
-                    // Skip empty lines and comments
                     continue;
                 }
                 if (line.startsWith("@")) {

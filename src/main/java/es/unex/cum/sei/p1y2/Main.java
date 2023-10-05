@@ -10,11 +10,9 @@ import java.io.IOException;
 public class Main {
     private static HillCipher hillCipher;
     private static FileHelper fileHelper;
-
     public static FileHelper getFileHelper() {
         return fileHelper;
     }
-
     public Main(String[] args){
         hillCipher = new HillCipher();
         fileHelper = new FileHelper();
@@ -41,7 +39,6 @@ public class Main {
         }
 
     }
-
     public static void encrypt(String inputFile, String keyMatrixFile, String outputFile, boolean debugModeEnabled){
         try{
             String textToEncrypt = fileHelper.readFromFile(inputFile);
@@ -68,7 +65,6 @@ public class Main {
         }
 
     }
-
     public static void decrypt(String inputFile, String keyMatrixFile, String outputFile, boolean debugModeEnabled){
         try{
             String textToDecrypt = fileHelper.readFromFile(inputFile);
@@ -97,7 +93,6 @@ public class Main {
             System.out.println(line);
         }
     }
-
     public static void printUsage() {
         System.out.println("""
                 La sintaxis del programa debe ser:
@@ -105,7 +100,6 @@ public class Main {
                 El argumento asociado a –f es el fichero de configuracion
                 El argumento –h indica ayuda  y hará que el programa informe al usuario de cuáles son sus posibilidades respecto al contenido y los parametros.""");
     }
-
     public static void printHelp() {
         System.out.println("""
                 La sintaxis del programa debe ser:
@@ -114,7 +108,6 @@ public class Main {
                 El argumento –h indica ayuda  y hará que el programa informe al usuario de cuáles son sus posibilidades respecto al contenido y los parametros.
                 Si no se especifica el fichero no hará nada""");
     }
-
     public static void main(String[] args) {
         new Main(args);
     }
