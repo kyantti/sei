@@ -5,25 +5,53 @@ import es.unex.cum.sei.p1y2.math.Matrix;
 import java.io.*;
 
 public class FileHelper {
+    /**
+     * Comprueba si un archivo está formateado correctamente para su procesamiento.
+     *
+     * @param fileName El nombre del archivo a verificar.
+     * @return `true` si el archivo está formateado correctamente, `false` en caso contrario.
+     */
+    public static boolean isFileFormatted(String fileName) {
+        String content = readFromFile(fileName);
 
-    public String readFromFile(String fileName) throws IOException {
+        for (char c : content.toCharArray()) {
+            if (Character.isWhitespace(c) || hasAccentMark(c) || !Character.isUpperCase(c)) {
+                return false;
+            }
+        }
+        return true;
+    }
+    /**
+     * Lee el contenido de un archivo y lo devuelve como una cadena.
+     *
+     * @param fileName El nombre del archivo a leer.
+     * @return El contenido del archivo como una cadena.
+     */
+    public static String readFromFile(String fileName){
         StringBuilder content = new StringBuilder();
         try (BufferedReader reader = new BufferedReader(new FileReader(fileName))) {
             String line;
-            boolean isFirstLine = true;  // Agregamos una bandera para controlar la primera línea
+            boolean isFirstLine = true;
             while ((line = reader.readLine()) != null) {
                 if (!isFirstLine) {
-                    content.append("\n");  // Agrega un salto de línea solo si no es la primera línea
+                    content.append("\n");
                 }
                 content.append(line);
-                isFirstLine = false;  // Después de la primera línea, cambiamos la bandera
+                isFirstLine = false;
             }
+        }
+        catch (IOException ioException){
+            ioException.printStackTrace();
         }
         return content.toString();
     }
-
-
-    public void formatAndSaveToFile(String content, String outputFile) throws IOException {
+    /**
+     * Formatea y guarda el contenido en un archivo específico.
+     *
+     * @param content    El contenido a formatear y guardar.
+     * @param outputFile El nombre del archivo de salida donde se guardará el contenido formateado.
+     */
+    public static void formatAndSaveToFile(String content, String outputFile){
         StringBuilder formattedContent = new StringBuilder();
 
         for (char c : content.toCharArray()) {
@@ -38,27 +66,46 @@ public class FileHelper {
 
         saveToFile(String.valueOf(formattedContent), outputFile);
     }
-
-    private boolean isInTheAlphabet(char c) {
+    /**
+     * Verifica si un carácter está en el alfabeto español.
+     *
+     * @param c El carácter a verificar.
+     * @return `true` si el carácter está en el alfabeto español, `false` en caso contrario.
+     */
+    private static boolean isInTheAlphabet(char c) {
         return Alphabet.SPANISH.indexOf(c) != -1;
     }
-
-    private boolean hasAccentMark(char c) {
-        // Check if the character has an accent mark
+    /**
+     * Verifica si un carácter tiene una tilde o diéresis.
+     *
+     * @param c El carácter a verificar.
+     * @return `true` si el carácter tiene una tilde o diéresis, `false` en caso contrario.
+     */
+    private static boolean hasAccentMark(char c) {
         return c == 'á' || c == 'é' || c == 'í' || c == 'ó' || c == 'ú' || c == 'ü';
     }
-
-    public void saveToFile(String content, String fileName) throws IOException {
+    /**
+     * Guarda un contenido en un archivo específico.
+     *
+     * @param content   El contenido a guardar en el archivo.
+     * @param fileName  El nombre del archivo donde se guardará el contenido.
+     */
+    public static void saveToFile(String content, String fileName) {
         File file = new File(fileName);
-        //file.getParentFile().mkdirs();
         try (BufferedWriter writer = new BufferedWriter(new FileWriter(file))) {
             writer.write(content);
         }
+        catch (IOException ioException){
+            ioException.printStackTrace();
+        }
     }
-
-
-
-    public Matrix getMatrixFromFile(String fileName) throws IOException {
+    /**
+     * Obtiene una matriz de una representación de cadena en un archivo.
+     *
+     * @param fileName El nombre del archivo que contiene la representación de matriz.
+     * @return La matriz obtenida del archivo o `null` si el formato es incorrecto.
+     */
+    public static Matrix getMatrixFromFile(String fileName){
         String fileContent = readFromFile(fileName);
         String[] tokens = fileContent.split("\\s+");
 

@@ -9,50 +9,66 @@ import java.io.IOException;
 
 public class Main {
     private static HillCipher hillCipher;
-    private static FileHelper fileHelper;
-    public static FileHelper getFileHelper() {
-        return fileHelper;
-    }
+    /**
+     * Constructor de la clase Main que inicializa una instancia de HillCipher y Configuration.
+     *
+     * @param args Los argumentos de línea de comandos.
+     */
     public Main(String[] args){
         hillCipher = new HillCipher();
-        fileHelper = new FileHelper();
-        Configuration.createConfiguration(args);
+        new Configuration(args);
     }
-    private static Matrix getDefaulKeytMatrix(){
+    /**
+     * Obtiene una matriz clave predeterminada.
+     *
+     * @return La matriz clave predeterminada.
+     */
+    public static Matrix getDefaulKeytMatrix(){
         int [][] data = {{1, 2, 3}, {0, 4, 5}, {1, 0, 6}};
         return new Matrix(data);
     }
+    /**
+     * Formatea la entrada y guarda el resultado en un archivo de salida.
+     *
+     * @param inputFile        El archivo de entrada a formatear.
+     * @param outputFile       El archivo de salida donde se guarda el texto formateado.
+     * @param debugModeEnabled Indica si el modo de depuración está habilitado.
+     */
     public static void formatInput(String inputFile, String outputFile, boolean debugModeEnabled){
+        String unformattedText = FileHelper.readFromFile(inputFile);
+        FileHelper.formatAndSaveToFile(unformattedText, outputFile);
+        String formattedText = FileHelper.readFromFile(outputFile);
 
-        try {
-            String unformattedText = fileHelper.readFromFile(inputFile);
-            fileHelper.formatAndSaveToFile(unformattedText, outputFile);
-            String formattedText = fileHelper.readFromFile(outputFile);
-
-            if (debugModeEnabled){
-                System.out.println("Texto sin formatear: " + unformattedText);
-                System.out.println("Texto formateado: " + formattedText);
-            }
-        }
-        catch (IOException ioException){
-            ioException.printStackTrace();
+        if (debugModeEnabled){
+            System.out.println("Texto sin formatear: " + unformattedText);
+            System.out.println("Texto formateado: " + formattedText);
         }
 
     }
+    /**
+     * Cifra un archivo de entrada utilizando la matriz clave especificada o una matriz clave predeterminada.
+     *
+     * @param inputFile        El archivo de entrada a cifrar.
+     * @param keyMatrixFile    El archivo que contiene la matriz clave (opcional).
+     * @param outputFile       El archivo de salida donde se guarda el texto cifrado.
+     * @param debugModeEnabled Indica si el modo de depuración está habilitado.
+     */
     public static void encrypt(String inputFile, String keyMatrixFile, String outputFile, boolean debugModeEnabled){
         try{
-            String textToEncrypt = fileHelper.readFromFile(inputFile);
+            String textToEncrypt = FileHelper.readFromFile(inputFile);
             Matrix keyMatrix;
 
             if (keyMatrixFile != null){
-                keyMatrix = fileHelper.getMatrixFromFile(keyMatrixFile);
+                keyMatrix = FileHelper.getMatrixFromFile(keyMatrixFile);
             }
             else{
                 keyMatrix = getDefaulKeytMatrix();
             }
 
             String encryptedText = hillCipher.encrypt(textToEncrypt, keyMatrix);
-            fileHelper.saveToFile(encryptedText, outputFile);
+            System.out.println("antes de guardar");
+            FileHelper.saveToFile(encryptedText, outputFile);
+            System.out.println("guardado");
 
             if (debugModeEnabled){
                 System.out.println("Texto a cifrar: " + textToEncrypt);
@@ -60,23 +76,32 @@ public class Main {
                 System.out.println("Texto cifrado: " + encryptedText);
             }
         }
-        catch (IOException | IllegalArgumentException ioException){
-            ioException.printStackTrace();
+        catch (IllegalArgumentException illegalArgumentException){
+            illegalArgumentException.printStackTrace();
         }
 
     }
+    /**
+     * Descifra un archivo de entrada utilizando la matriz clave especificada o una matriz clave predeterminada.
+     *
+     * @param inputFile        El archivo de entrada a descifrar.
+     * @param keyMatrixFile    El archivo que contiene la matriz clave (opcional).
+     * @param outputFile       El archivo de salida donde se guarda el texto descifrado.
+     * @param debugModeEnabled Indica si el modo de depuración está habilitado.
+     */
     public static void decrypt(String inputFile, String keyMatrixFile, String outputFile, boolean debugModeEnabled){
         try{
-            String textToDecrypt = fileHelper.readFromFile(inputFile);
+            String textToDecrypt = FileHelper.readFromFile(inputFile);
             Matrix keyMatrix;
             if (keyMatrixFile != null){
-                keyMatrix = fileHelper.getMatrixFromFile(keyMatrixFile);
+                keyMatrix = FileHelper.getMatrixFromFile(keyMatrixFile);
             }
             else{
                 keyMatrix = getDefaulKeytMatrix();
             }
+
             String decryptedText = hillCipher.decrypt(textToDecrypt, keyMatrix);
-            fileHelper.saveToFile(decryptedText, outputFile);
+            FileHelper.saveToFile(decryptedText, outputFile);
 
             if (debugModeEnabled){
                 System.out.println("Texto a descifrar: " + textToDecrypt);
@@ -84,30 +109,15 @@ public class Main {
                 System.out.println("Texto descifrado: " + decryptedText);
             }
         }
-        catch (IOException | IllegalArgumentException ioException){
-            ioException.printStackTrace();
+        catch (IllegalArgumentException illegalArgumentException){
+            illegalArgumentException.printStackTrace();
         }
     }
-    public static void debugIfEnabled(String line, boolean debugModeEnabled) {
-        if (debugModeEnabled){
-            System.out.println(line);
-        }
-    }
-    public static void printUsage() {
-        System.out.println("""
-                La sintaxis del programa debe ser:
-                P1_si2023 [-f fichero] | [-h]
-                El argumento asociado a –f es el fichero de configuracion
-                El argumento –h indica ayuda  y hará que el programa informe al usuario de cuáles son sus posibilidades respecto al contenido y los parametros.""");
-    }
-    public static void printHelp() {
-        System.out.println("""
-                La sintaxis del programa debe ser:
-                P1_si2023 [-f fichero] | [-h]
-                El argumento asociado a –f es el fichero de configuracion
-                El argumento –h indica ayuda  y hará que el programa informe al usuario de cuáles son sus posibilidades respecto al contenido y los parametros.
-                Si no se especifica el fichero no hará nada""");
-    }
+    /**
+     * Método principal que inicia la aplicación.
+     *
+     * @param args Los argumentos de línea de comandos.
+     */
     public static void main(String[] args) {
         new Main(args);
     }

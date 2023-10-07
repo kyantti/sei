@@ -15,13 +15,8 @@ public class Configuration {
     private boolean decryptionModeEnabled;
     private boolean debugModeEnabled;
 
-    private Configuration() {
-
-    }
-
-    public static void createConfiguration(String[] args) {
-        Configuration config = new Configuration();
-        config.parseArguments(args);
+    public Configuration(String[] args) {
+        parseArguments(args);
     }
 
     public void enableEncryptionMode(){
@@ -77,33 +72,37 @@ public class Configuration {
     }
 
     private void parseConfigFile(String configFile) {
-        Main.debugIfEnabled("Leyendo y ejecutando el fichero de configuración: " + configFile, debugModeEnabled);
 
-        try {
-            String configContents = Main.getFileHelper().readFromFile(configFile);
+        if (debugModeEnabled){
+            System.out.println("Leyendo y ejecutando el fichero de configuración: " + configFile);
+        }
 
-            String[] lines = configContents.split("\\n");
+        String configContents = FileHelper.readFromFile(configFile);
 
-            for (String line : lines) {
+        String[] lines = configContents.split("\\n");
 
-                line = line.trim();
+        for (String line : lines) {
 
-                if (line.isEmpty() || line.startsWith("#")) {
-                    continue;
-                }
-                if (line.startsWith("@")) {
-                    parseFlag(line);
-                }
-                else if (line.startsWith("&")) {
-                    parseCommand(line);
-                }
-                else {
-                    System.err.println("Linea invalida en el archivo de configuracion " + line);
-                }
+            line = line.trim();
+
+            if (line.isEmpty() ) {
+                continue;
             }
-        } catch (IOException e) {
-            System.err.println("Error al leer el arhivo de configuracion: " + e.getMessage());
-            System.exit(1);
+            if (line.startsWith("#")){
+                if(debugModeEnabled){
+                    System.out.println("Leyendo la linea: " + line);
+                }
+                continue;
+            }
+            if (line.startsWith("@")) {
+                parseFlag(line);
+            }
+            else if (line.startsWith("&")) {
+                parseCommand(line);
+            }
+            else {
+                System.err.println("Linea invalida en el archivo de configuracion " + line);
+            }
         }
 
     }
@@ -111,7 +110,9 @@ public class Configuration {
 
     private void parseFlag(String line) {
 
-        Main.debugIfEnabled("Procesando la linea: " + line, debugModeEnabled);
+        if (debugModeEnabled){
+            System.out.println("Procesando la linea: " + line);
+        }
 
         String[] parts = line.split("\\s+");
         if (parts.length < 3) {
@@ -131,9 +132,11 @@ public class Configuration {
     private void handleCipheringFlag(String flagValue) {
         if (flagValue.equals("ON")) {
             enableEncryptionMode();
-        } else if (flagValue.equals("OFF")) {
+        }
+        else if (flagValue.equals("OFF")) {
             enableDecryptionMode();
-        } else {
+        }
+        else {
             throw new IllegalArgumentException("Invalid value for 'codifica' flag: " + flagValue);
         }
     }
@@ -150,54 +153,108 @@ public class Configuration {
         }
     }
 
-    private void parseCommand(String line) {
+    private boolean parseCommand(String line) {
 
-        Main.debugIfEnabled("Procesando la linea: " + line, debugModeEnabled);
+        boolean succes = true;
+
+        if (debugModeEnabled){
+            System.out.println("Procesando la linea: " + line);
+        }
 
         String[] parts = line.split("\\s+");
 
         if (parts.length < 2) {
             System.err.println("Formato del comando invalido: " + line);
-            return;
+            succes = false;
         }
 
         String commandName = parts[1].toLowerCase();
 
         if (parts.length == 2) {
-            handleSingleWordCommand(commandName);
+            succes = handleSingleWordCommand(commandName);
         }
         else if (parts.length == 3) {
             String fileName = parts[2];
-            handleTwoWordCommand(commandName, fileName);
+            succes = handleTwoWordCommand(commandName, fileName);
         }
         else {
             System.err.println("Invalid command format: " + line);
         }
+
+        return succes;
     }
 
-    private void handleSingleWordCommand(String commandName) {
+    private boolean handleSingleWordCommand(String commandName) {
+        boolean success = true;
         switch (commandName) {
-            case "formateaentrada" -> Main.formatInput(inputFile, outputFile, debugModeEnabled);
-            case "hill" -> {
-                if (encryptionModeEnabled) {
-                    Main.encrypt(inputFile, keyFile, outputFile, debugModeEnabled);
+            case "formateaentrada" -> {
+                if (inputFile != null && outputFile != null){
+                    Main.formatInput(inputFile, outputFile, debugModeEnabled);
                 }
-                else if (decryptionModeEnabled) {
-                    Main.decrypt(inputFile, keyFile, outputFile, debugModeEnabled);
+                else if (inputFile == null){
+                    System.err.println("!Aiso! La entrada no será formateada, debido a que no se ha especificado un fichero de entrada");
+                    success = false;
+                }
+                else if (outputFile == null){
+                    System.err.println("!Aiso! No se ha especificado un fichero de salida.");
+                    success = false;
                 }
             }
-            default -> System.err.println("Comando invalido: " + commandName);
+            case "hill" -> {
+                if (inputFile != null){
+                    if (FileHelper.isFileFormatted(inputFile)){
+                        if (encryptionModeEnabled) {
+                            Main.encrypt(inputFile, keyFile, outputFile, debugModeEnabled);
+                        }
+                        else if (decryptionModeEnabled) {
+                            Main.decrypt(inputFile, keyFile, outputFile, debugModeEnabled);
+                        }
+                    }
+                    else {
+                        System.err.println("!Aviso! El cifrado / descifrado no se llevará a cabo debido a que el contenido de la entrada no ha sido formateado\nEntrada: " + FileHelper.readFromFile(inputFile));
+                        success = false;
+                    }
+                }
+                else{
+                    System.err.println("!Aviso! El cifrado / descifrado no se llevará a cabo debido a que no se ha especificado el fichero de entrada");
+                    success = false;
+                }
+            }
+            case "ficheroentrada" ->{
+                System.err.println("No se ha espeficado el fichero de entrada");
+                success = false;
+            }
+            case "ficherosalida" ->{
+                System.err.println("No se ha espeficado el fichero de salida.");
+                success = false;
+            }
+            case "clave" -> System.err.println("No se ha espeficado el fichero clave, se utilizara la matriz clave por defecto\nMatriz clave:\n" + Main.getDefaulKeytMatrix().toString());
+
+            default -> throw new IllegalArgumentException("Comando invalido: " + commandName);
         }
+        return  success;
     }
 
-    private void handleTwoWordCommand(String commandName, String fileName) {
+    private boolean handleTwoWordCommand(String commandName, String fileName) {
+        boolean succes = true;
         switch (commandName) {
-            case "ficheroentrada" -> inputFile = fileName;
-            case "ficherosalida" -> {
-                if (fileExists(fileName)) {
-                    System.err.println("¡Aviso! El archivo de salida ya existe, será reescrito: " + fileName);
+            case "ficheroentrada" ->{
+                if (fileName != null && fileExists(fileName)){
+                    inputFile = fileName;
                 }
-                outputFile = fileName;
+                else if (!fileExists(fileName)){
+                    System.err.println("!Aviso!: El fichero de entrada especificado no existe");
+                    succes = false;
+                }
+            }
+            case "ficherosalida" -> {
+                if (fileName != null) {
+                    outputFile = fileName;
+                }
+                if (fileExists(fileName)){
+                    System.err.println("¡Aviso! El archivo de salida ya existe, será reescrito: " + fileName);
+                    outputFile = fileName;
+                }
             }
             case "clave" -> {
                 if (!fileExists(fileName)) {
@@ -207,6 +264,7 @@ public class Configuration {
             }
             default -> System.err.println("Comando invalido: " + commandName);
         }
+        return  succes;
     }
 
     private boolean fileExists(String fileName) {
@@ -215,10 +273,19 @@ public class Configuration {
     }
 
     private void printUsage() {
-        Main.printUsage();
+        System.out.println("""
+                La sintaxis del programa debe ser:
+                P1_si2023 [-f fichero] | [-h]
+                El argumento asociado a –f es el fichero de configuracion
+                El argumento –h indica ayuda  y hará que el programa informe al usuario de cuáles son sus posibilidades respecto al contenido y los parametros.""");
     }
 
     private void printHelp() {
-        Main.printHelp();
+        System.out.println("""
+                La sintaxis del programa debe ser:
+                P1_si2023 [-f fichero] | [-h]
+                El argumento asociado a –f es el fichero de configuracion
+                El argumento –h indica ayuda  y hará que el programa informe al usuario de cuáles son sus posibilidades respecto al contenido y los parametros.
+                Si no se especifica el fichero no hará nada""");
     }
 }

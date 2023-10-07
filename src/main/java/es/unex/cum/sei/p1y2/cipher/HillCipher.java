@@ -7,6 +7,12 @@ import java.util.Random;
 
 public class HillCipher implements  Cipher{
 
+    /**
+     * Divide el mensaje en tripletes y los completa con caracteres aleatorios si es necesario.
+     *
+     * @param message El mensaje a dividir en tripletes.
+     * @return Una cadena con los tripletes formateados.
+     */
     private String divideIntoTriplets(String message) {
         StringBuilder result = new StringBuilder();
         Random random = new Random();
@@ -24,7 +30,12 @@ public class HillCipher implements  Cipher{
 
         return result.toString().trim();
     }
-
+    /**
+     * Obtiene una matriz a partir de una cadena de texto.
+     *
+     * @param text El texto para el que se desea crear una matriz.
+     * @return La matriz correspondiente al texto.
+     */
     private Matrix getMatrix(String text) {
         String[] triplets = divideIntoTriplets(text).split(" ");
         int[][] data = new int[3][triplets.length];
@@ -40,12 +51,26 @@ public class HillCipher implements  Cipher{
 
         return new Matrix(data);
     }
-
+    /**
+     * Cifra un mensaje utilizando una clave dada.
+     *
+     * @param message El mensaje a cifrar.
+     * @param key     La clave para el cifrado.
+     * @return El mensaje cifrado.
+     * @throws IllegalArgumentException Si la operación no se puede realizar debido a la clave incorrecta.
+     */
     public String encrypt(String message, Matrix key) throws IllegalArgumentException {
         return getString(message, key);
 
     }
-
+    /**
+     * Realiza el cifrado o descifrado de una cadena utilizando una matriz dada.
+     *
+     * @param message El mensaje a cifrar o descifrar.
+     * @param a       La matriz para la operación.
+     * @return El mensaje cifrado o descifrado.
+     * @throws IllegalArgumentException Si la operación no se puede realizar debido a la matriz incorrecta.
+     */
     private String getString(String message, Matrix a) throws IllegalArgumentException {
         Matrix b = getMatrix(message);
 
@@ -62,7 +87,14 @@ public class HillCipher implements  Cipher{
 
         return encrypted.toString();
     }
-
+    /**
+     * Descifra un mensaje utilizando una clave dada.
+     *
+     * @param message El mensaje a descifrar.
+     * @param key     La clave para la descifrar.
+     * @return El mensaje descifrado.
+     * @throws IllegalArgumentException Si la operación no se puede realizar debido a la clave incorrecta.
+     */
     public String decrypt(String message, Matrix key) throws IllegalArgumentException {
         Matrix a = key.modularInverse(27);
         return getString(message, a);
