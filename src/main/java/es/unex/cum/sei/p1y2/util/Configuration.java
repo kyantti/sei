@@ -2,31 +2,40 @@ package es.unex.cum.sei.p1y2.util;
 
 import es.unex.cum.sei.p1y2.Main;
 
-import java.io.File;
-import java.io.IOException;
-
 public class Configuration {
     private static String encryptFlag;
-    private static String debugFlag;
     private String inputFile;
     private String outputFile;
     private String keyFile;
     private boolean debugModeEnabled;
     private boolean success;
 
+    /**
+     * Constructor de la clase Configuration.
+     *
+     * @param args Los argumentos de línea de comandos pasados al programa.
+     */
     public Configuration(String[] args) {
         success = true;
         parseArguments(args);
     }
-
+    /**
+     * Habilita el modo de depuración.
+     */
     public void enableDebugMode(){
         debugModeEnabled = true;
     }
-
+    /**
+     * Deshabilita el modo de depuración.
+     */
     public void disableDebugMode(){
         debugModeEnabled = false;
     }
-
+    /**
+     * Analiza los argumentos de línea de comandos y el archivo de configuración.
+     *
+     * @param args Los argumentos de línea de comandos pasados al programa.
+     */
     private void parseArguments(String[] args) {
         if (args.length == 0) {
             printUsage();
@@ -67,7 +76,11 @@ public class Configuration {
             printErrorInfo("Ejecución finalizada con errores");
         }
     }
-
+    /**
+     * Analiza un archivo de configuración y realiza las acciones especificadas en él.
+     *
+     * @param configFile El nombre del archivo de configuración.
+     */
     private void parseConfigFile(String configFile) {
 
         if (debugModeEnabled){
@@ -103,8 +116,11 @@ public class Configuration {
         }
 
     }
-
-
+    /**
+     * Analiza una bandera en el archivo de configuración y realiza acciones basadas en su valor.
+     *
+     * @param line La línea que contiene la bandera en el archivo de configuración.
+     */
     private void parseFlag(String line) {
         if (debugModeEnabled) {
             printDebugInfo("Procesando la linea: " + line);
@@ -135,8 +151,11 @@ public class Configuration {
             success = false;
         }
     }
-
-
+    /**
+     * Maneja la bandera "codifica" en el archivo de configuración.
+     *
+     * @param flagValue El valor de la bandera "codifica".
+     */
     private void handleCipheringFlag(String flagValue) {
         if (flagValue.equals("ON")) {
             encryptFlag = "ON";
@@ -150,7 +169,11 @@ public class Configuration {
             success = false;
         }
     }
-
+    /**
+     * Maneja la bandera "traza" en el archivo de configuración.
+     *
+     * @param flagValue El valor de la bandera "traza".
+     */
     private void handleDebugFlag(String flagValue) {
         if (flagValue.equals("ON")) {
             enableDebugMode();
@@ -163,7 +186,11 @@ public class Configuration {
             success = false;
         }
     }
-
+    /**
+     * Analiza un comando en el archivo de configuración y realiza las acciones especificadas en él.
+     *
+     * @param line La línea que contiene el comando en el archivo de configuración.
+     */
     private void parseCommand(String line) {
 
         if (debugModeEnabled){
@@ -191,7 +218,11 @@ public class Configuration {
         }
 
     }
-
+    /**
+     * Maneja un comando de una sola palabra en el archivo de configuración.
+     *
+     * @param commandName El nombre del comando de una sola palabra.
+     */
     private void handleSingleWordCommand(String commandName) {
         switch (commandName) {
             case "formateaentrada" -> {
@@ -251,7 +282,12 @@ public class Configuration {
             }
         }
     }
-
+    /**
+     * Maneja un comando de dos palabras en el archivo de configuración.
+     *
+     * @param commandName El nombre del comando de dos palabras.
+     * @param fileName El nombre del archivo asociado al comando.
+     */
     private void handleTwoWordCommand(String commandName, String fileName) {
         switch (commandName) {
             case "ficheroentrada" ->{
@@ -281,23 +317,38 @@ public class Configuration {
             default -> printErrorInfo("Comando invalido: " + commandName);
         }
     }
-
+    /**
+     * Verifica si un archivo existe en el sistema de archivos.
+     *
+     * @param fileName El nombre del archivo a verificar.
+     * @return `true` si el archivo existe, `false` en caso contrario.
+     */
     private boolean fileExists(String fileName) {
         return FileHelper.fileExits(fileName);
     }
-
+    /**
+     * Imprime información de depuración si el modo de depuración está habilitado.
+     *
+     * @param info La información de depuración que se va a imprimir.
+     */
     private void printDebugInfo(String info){
         if (debugModeEnabled){
             System.err.println(info);
         }
     }
-
+    /**
+     * Imprime información de error si el modo de depuración está habilitado.
+     *
+     * @param error La información de error que se va a imprimir.
+     */
     private void printErrorInfo(String error){
         if (debugModeEnabled){
             System.err.println(error);
         }
     }
-
+    /**
+     * Imprime el mensaje de uso del programa.
+     */
     private void printUsage() {
         System.out.println("""
                 La sintaxis del programa debe ser:
@@ -305,7 +356,9 @@ public class Configuration {
                 El argumento asociado a –f es el fichero de configuracion
                 El argumento –h indica ayuda  y hará que el programa informe al usuario de cuáles son sus posibilidades respecto al contenido y los parametros.""");
     }
-
+    /**
+     * Imprime la ayuda del programa.
+     */
     private void printHelp() {
         System.out.println("""
                 La sintaxis del programa debe ser:

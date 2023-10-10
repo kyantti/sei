@@ -59,10 +59,17 @@ public class HillCipher implements  Cipher{
      * @return El mensaje cifrado.
      * @throws IllegalArgumentException Si la operación no se puede realizar debido a la clave incorrecta.
      */
+
     public String encrypt(String message, Matrix key) throws IllegalArgumentException {
         return getString(message, key);
 
     }
+
+    @Override
+    public String encrypt(String text, String key) {
+        return null;
+    }
+
     /**
      * Realiza el cifrado o descifrado de una cadena utilizando una matriz dada.
      *
@@ -98,6 +105,11 @@ public class HillCipher implements  Cipher{
     public String decrypt(String message, Matrix key) throws IllegalArgumentException {
         Matrix a = key.modularInverse(27);
         return getString(message, a);
+    }
+
+    @Override
+    public String decrypt(String text, String key) {
+        return null;
     }
 
 }
