@@ -66,15 +66,15 @@ public class Main {
             }
 
             String encryptedText = hillCipher.encrypt(textToEncrypt, keyMatrix);
-            System.out.println("antes de guardar");
             FileHelper.saveToFile(encryptedText, outputFile);
-            System.out.println("guardado");
 
+            System.out.println("Texto a cifrar: " + textToEncrypt);
+            System.out.println("Cifrando mediante el algoritmo de Hill...");
             if (debugModeEnabled){
-                System.out.println("Texto a cifrar: " + textToEncrypt);
                 System.out.println("Matriz clave:\n" + keyMatrix.toString());
-                System.out.println("Texto cifrado: " + encryptedText);
             }
+
+            System.out.println("Texto cifrado: " + encryptedText);
         }
         catch (IllegalArgumentException illegalArgumentException){
             illegalArgumentException.printStackTrace();
@@ -103,11 +103,12 @@ public class Main {
             String decryptedText = hillCipher.decrypt(textToDecrypt, keyMatrix);
             FileHelper.saveToFile(decryptedText, outputFile);
 
+            System.out.println("Texto a descifrar: " + textToDecrypt);
+            System.out.println("Descifrando mediante el algoritmo de Hill...");
             if (debugModeEnabled){
-                System.out.println("Texto a descifrar: " + textToDecrypt);
                 System.out.println("Matriz clave:\n" + keyMatrix.modularInverse(27));
-                System.out.println("Texto descifrado: " + decryptedText);
             }
+            System.out.println("Texto descifrado: " + decryptedText);
         }
         catch (IllegalArgumentException illegalArgumentException){
             illegalArgumentException.printStackTrace();

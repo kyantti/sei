@@ -6,27 +6,17 @@ import java.io.File;
 import java.io.IOException;
 
 public class Configuration {
-    private static final String FLAG_CODIFICA = "codifica";
-    private static final String FLAG_TRAZA = "traza";
+    private static String encryptFlag;
+    private static String debugFlag;
     private String inputFile;
     private String outputFile;
     private String keyFile;
-    private boolean encryptionModeEnabled;
-    private boolean decryptionModeEnabled;
     private boolean debugModeEnabled;
+    private boolean success;
 
     public Configuration(String[] args) {
+        success = true;
         parseArguments(args);
-    }
-
-    public void enableEncryptionMode(){
-        decryptionModeEnabled = false;
-        encryptionModeEnabled = true;
-    }
-
-    public void enableDecryptionMode(){
-        encryptionModeEnabled = false;
-        decryptionModeEnabled = true;
     }
 
     public void enableDebugMode(){
@@ -53,7 +43,7 @@ public class Configuration {
                         i++;
                     }
                     else {
-                        System.err.println("Falta el argumento del fichero de configuracion");
+                        printErrorInfo("Falta el argumento del fichero de configuracion");
                         printUsage();
                         System.exit(1);
                     }
@@ -63,18 +53,25 @@ public class Configuration {
                     System.exit(0);
                 }
                 default -> {
-                    System.err.println("Argumento invalido: " + arg);
+                    printErrorInfo("Argumento invalido: " + arg);
                     printUsage();
                     System.exit(1);
                 }
             }
+        }
+
+        if (success){
+            printDebugInfo("Ejecución finalizada con exito");
+        }
+        else {
+            printErrorInfo("Ejecución finalizada con errores");
         }
     }
 
     private void parseConfigFile(String configFile) {
 
         if (debugModeEnabled){
-            System.out.println("Leyendo y ejecutando el fichero de configuración: " + configFile);
+            printDebugInfo("Leyendo y ejecutando el fichero de configuración: " + configFile);
         }
 
         String configContents = FileHelper.readFromFile(configFile);
@@ -90,7 +87,7 @@ public class Configuration {
             }
             if (line.startsWith("#")){
                 if(debugModeEnabled){
-                    System.out.println("Leyendo la linea: " + line);
+                    printDebugInfo("Leyendo la linea: " + line);
                 }
                 continue;
             }
@@ -101,7 +98,7 @@ public class Configuration {
                 parseCommand(line);
             }
             else {
-                System.err.println("Linea invalida en el archivo de configuracion " + line);
+                printErrorInfo("Linea invalida en el archivo de configuracion " + line);
             }
         }
 
@@ -109,35 +106,48 @@ public class Configuration {
 
 
     private void parseFlag(String line) {
-
-        if (debugModeEnabled){
-            System.out.println("Procesando la linea: " + line);
+        if (debugModeEnabled) {
+            printDebugInfo("Procesando la linea: " + line);
         }
 
         String[] parts = line.split("\\s+");
-        if (parts.length < 3) {
-            throw new IllegalArgumentException("Formato de bandera invalido: " + line);
+        if (parts.length < 2) {
+            printErrorInfo("Formato de bandera invalido: " + line);
+            success = false;
+            return;
         }
 
         String flagName = parts[1].toLowerCase();
-        String flagValue = parts[2].toUpperCase();
 
-        switch (flagName) {
-            case FLAG_CODIFICA -> handleCipheringFlag(flagValue);
-            case FLAG_TRAZA -> handleDebugFlag(flagValue);
-            default -> throw new IllegalArgumentException("Bandera invalida: " + flagName);
+        if (parts.length >= 3) {
+            String flagValue = parts[2].toUpperCase();
+            switch (flagName) {
+                case "codifica" -> handleCipheringFlag(flagValue);
+                case "traza" -> handleDebugFlag(flagValue);
+                default -> {
+                    printErrorInfo("Bandera invalida: " + flagName);
+                    success = false;
+                }
+            }
+        }
+        else {
+            printErrorInfo("Valor faltante para la bandera '" + flagName + "'");
+            success = false;
         }
     }
 
+
     private void handleCipheringFlag(String flagValue) {
         if (flagValue.equals("ON")) {
-            enableEncryptionMode();
+            encryptFlag = "ON";
         }
         else if (flagValue.equals("OFF")) {
-            enableDecryptionMode();
+            encryptFlag = "OFF";
         }
         else {
-            throw new IllegalArgumentException("Invalid value for 'codifica' flag: " + flagValue);
+            encryptFlag = flagValue;
+            printErrorInfo("Valor invalido para la bandera 'codifica': " + flagValue);
+            success = false;
         }
     }
 
@@ -149,102 +159,108 @@ public class Configuration {
             disableDebugMode();
         }
         else {
-            throw new IllegalArgumentException("Valor incorrecto para la bandera 'traza':" + flagValue);
+            System.err.println("Valor incorrecto para la bandera 'traza':" + flagValue + " .No se mostrará la traza de la ejecución del programa");
+            success = false;
         }
     }
 
-    private boolean parseCommand(String line) {
-
-        boolean succes = true;
+    private void parseCommand(String line) {
 
         if (debugModeEnabled){
-            System.out.println("Procesando la linea: " + line);
+            printDebugInfo("Procesando la linea: " + line);
         }
 
         String[] parts = line.split("\\s+");
 
         if (parts.length < 2) {
-            System.err.println("Formato del comando invalido: " + line);
-            succes = false;
+            printErrorInfo("Formato del comando invalido: " + line);
+            success = false;
         }
 
         String commandName = parts[1].toLowerCase();
 
         if (parts.length == 2) {
-            succes = handleSingleWordCommand(commandName);
+            handleSingleWordCommand(commandName);
         }
         else if (parts.length == 3) {
             String fileName = parts[2];
-            succes = handleTwoWordCommand(commandName, fileName);
+            handleTwoWordCommand(commandName, fileName);
         }
         else {
-            System.err.println("Invalid command format: " + line);
+            printErrorInfo("Formato de comando invalido: " + line);
         }
 
-        return succes;
     }
 
-    private boolean handleSingleWordCommand(String commandName) {
-        boolean success = true;
+    private void handleSingleWordCommand(String commandName) {
         switch (commandName) {
             case "formateaentrada" -> {
                 if (inputFile != null && outputFile != null){
                     Main.formatInput(inputFile, outputFile, debugModeEnabled);
                 }
                 else if (inputFile == null){
-                    System.err.println("!Aiso! La entrada no será formateada, debido a que no se ha especificado un fichero de entrada");
+                    printErrorInfo("!Aiso! La entrada no será formateada, debido a que no se ha especificado un fichero de entrada");
                     success = false;
                 }
                 else if (outputFile == null){
-                    System.err.println("!Aiso! No se ha especificado un fichero de salida.");
+                    printErrorInfo("!Aiso! No se ha especificado un fichero de salida.");
                     success = false;
                 }
             }
             case "hill" -> {
                 if (inputFile != null){
-                    if (FileHelper.isFileFormatted(inputFile)){
-                        if (encryptionModeEnabled) {
+                    if (FileHelper.isFileFormatted(inputFile) && (keyFile == null || fileExists(keyFile))){
+                        if (encryptFlag != null &&  encryptFlag.equals("ON")) {
                             Main.encrypt(inputFile, keyFile, outputFile, debugModeEnabled);
                         }
-                        else if (decryptionModeEnabled) {
+                        else if (encryptFlag != null && encryptFlag.equals("OFF")) {
                             Main.decrypt(inputFile, keyFile, outputFile, debugModeEnabled);
                         }
+                        else{
+                            printErrorInfo("!Aviso! El cifrado / descifrado no se llevará a cabo debido a que no se ha especificado un valor valido para la bandera 'codifica' " + encryptFlag);
+                            success = false;
+                        }
                     }
-                    else {
-                        System.err.println("!Aviso! El cifrado / descifrado no se llevará a cabo debido a que el contenido de la entrada no ha sido formateado\nEntrada: " + FileHelper.readFromFile(inputFile));
+                    else if (!FileHelper.isFileFormatted(inputFile)){
+                        printErrorInfo("!Aviso! El cifrado / descifrado no se llevará a cabo debido a que el contenido de la entrada no ha sido formateado\nEntrada: " + FileHelper.readFromFile(inputFile));
+                        success = false;
+                    }
+                    else if (keyFile != null && !fileExists(keyFile)){
+                        printErrorInfo("!Aviso! El cifrado / descifrado no se llevará a cabo debido a que el fichero: " + keyFile + " no existe");
                         success = false;
                     }
                 }
                 else{
-                    System.err.println("!Aviso! El cifrado / descifrado no se llevará a cabo debido a que no se ha especificado el fichero de entrada");
+                    printErrorInfo("!Aviso! El cifrado / descifrado no se llevará a cabo debido a que no se ha especificado el fichero de entrada");
                     success = false;
                 }
             }
             case "ficheroentrada" ->{
-                System.err.println("No se ha espeficado el fichero de entrada");
+                printErrorInfo("No se ha espeficado el fichero de entrada");
                 success = false;
             }
             case "ficherosalida" ->{
-                System.err.println("No se ha espeficado el fichero de salida.");
+                printErrorInfo("No se ha espeficado el fichero de salida.");
                 success = false;
             }
-            case "clave" -> System.err.println("No se ha espeficado el fichero clave, se utilizara la matriz clave por defecto\nMatriz clave:\n" + Main.getDefaulKeytMatrix().toString());
+            case "clave" -> printErrorInfo("No se ha espeficado el fichero clave, se utilizara la matriz clave por defecto\nMatriz clave:\n" + Main.getDefaulKeytMatrix().toString());
 
-            default -> throw new IllegalArgumentException("Comando invalido: " + commandName);
+            default ->{
+                printErrorInfo("Comando invalido: " + commandName);
+                success = false;
+            }
         }
-        return  success;
     }
 
-    private boolean handleTwoWordCommand(String commandName, String fileName) {
-        boolean succes = true;
+    private void handleTwoWordCommand(String commandName, String fileName) {
         switch (commandName) {
             case "ficheroentrada" ->{
                 if (fileName != null && fileExists(fileName)){
                     inputFile = fileName;
                 }
                 else if (!fileExists(fileName)){
-                    System.err.println("!Aviso!: El fichero de entrada especificado no existe");
-                    succes = false;
+                    printErrorInfo("!Aviso!: El fichero de entrada especificado no existe");
+                    success = false;
                 }
             }
             case "ficherosalida" -> {
@@ -252,24 +268,34 @@ public class Configuration {
                     outputFile = fileName;
                 }
                 if (fileExists(fileName)){
-                    System.err.println("¡Aviso! El archivo de salida ya existe, será reescrito: " + fileName);
+                    printErrorInfo("¡Aviso! El archivo de salida ya existe, será reescrito: " + fileName);
                     outputFile = fileName;
                 }
             }
             case "clave" -> {
                 if (!fileExists(fileName)) {
-                    System.err.println("¡Error! No existe el fichero de entrada para la clave: " + fileName);
+                    printErrorInfo("¡Error! No existe el fichero de entrada para la clave: " + fileName + ". El cifrado/descifrado no se llevará a cabo.");
                 }
                 keyFile = fileName;
             }
-            default -> System.err.println("Comando invalido: " + commandName);
+            default -> printErrorInfo("Comando invalido: " + commandName);
         }
-        return  succes;
     }
 
     private boolean fileExists(String fileName) {
-        File file = new File(fileName);
-        return file.exists();
+        return FileHelper.fileExits(fileName);
+    }
+
+    private void printDebugInfo(String info){
+        if (debugModeEnabled){
+            System.err.println(info);
+        }
+    }
+
+    private void printErrorInfo(String error){
+        if (debugModeEnabled){
+            System.err.println(error);
+        }
     }
 
     private void printUsage() {

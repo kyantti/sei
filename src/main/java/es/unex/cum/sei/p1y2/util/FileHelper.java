@@ -5,6 +5,10 @@ import es.unex.cum.sei.p1y2.math.Matrix;
 import java.io.*;
 
 public class FileHelper {
+    public static boolean fileExits(String fileName){
+        File file = new File(fileName);
+        return file.exists();
+    }
     /**
      * Comprueba si un archivo está formateado correctamente para su procesamiento.
      *
