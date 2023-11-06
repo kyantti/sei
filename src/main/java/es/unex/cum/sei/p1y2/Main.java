@@ -5,8 +5,6 @@ import es.unex.cum.sei.p1y2.math.Matrix;
 import es.unex.cum.sei.p1y2.util.Configuration;
 import es.unex.cum.sei.p1y2.util.FileHelper;
 
-import java.io.IOException;
-
 public class Main {
     private static HillCipher hillCipher;
     /**

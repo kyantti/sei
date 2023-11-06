@@ -5,6 +5,8 @@ import es.unex.cum.sei.p1y2.math.Matrix;
 
 import java.util.Random;
 
+import javax.crypto.SecretKey;
+
 public class HillCipher implements  Cipher{
 
     /**
@@ -65,11 +67,6 @@ public class HillCipher implements  Cipher{
 
     }
 
-    @Override
-    public String encrypt(String text, String key) {
-        return null;
-    }
-
     /**
      * Realiza el cifrado o descifrado de una cadena utilizando una matriz dada.
      *
@@ -108,8 +105,13 @@ public class HillCipher implements  Cipher{
     }
 
     @Override
-    public String decrypt(String text, String key) {
+    public String decrypt(String text, SecretKey key) {
+        return null;
+    }
+    @Override
+    public String encrypt(String text, SecretKey key, boolean padding) {
         return null;
     }
 
+    
 }
