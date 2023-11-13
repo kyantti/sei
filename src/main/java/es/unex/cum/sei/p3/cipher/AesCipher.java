@@ -78,8 +78,15 @@ public class AesCipher {
             Arrays.fill(paddedPlaintext, plaintextBytes.length, paddedPlaintext.length, (byte) paddingLength);
 
             // XOR padded plaintext with IV
+            byte currentByteOfPaddedPlaintext = 0;
+            byte correspondingByteOfIV = 0;
+
             for (int i = 0; i < paddedPlaintext.length; i++) {
-                paddedPlaintext[i] ^= iv[i % iv.length];
+                currentByteOfPaddedPlaintext = paddedPlaintext[i];
+                correspondingByteOfIV = iv[i % iv.length];
+
+                // Perform bitwise XOR operation
+                paddedPlaintext[i] = (byte) (currentByteOfPaddedPlaintext ^ correspondingByteOfIV);
             }
 
             // Encrypt the modified plaintext using ECB
@@ -117,8 +124,14 @@ public class AesCipher {
             byte[] decryptedData = decryptUsingEcb(encryptedData, key, false).getBytes();
 
             // XOR decrypted data with IV to reverse the operation
+            byte currentByteOfDecryptedData = 0;
+            byte correspondingByteOfIV = 0;
+
             for (int i = 0; i < decryptedData.length; i++) {
-                decryptedData[i] ^= iv[i % iv.length];
+                currentByteOfDecryptedData = decryptedData[i];
+                correspondingByteOfIV = iv[i % iv.length];
+                // Perform bitwise XOR operation
+                decryptedData[i] = (byte) (currentByteOfDecryptedData ^ correspondingByteOfIV);
             }
 
             // Convert the decrypted bytes to a String
