@@ -11,6 +11,7 @@ import java.util.logging.Logger;
 
 import javax.crypto.KeyGenerator;
 import javax.crypto.SecretKey;
+import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
 import javax.crypto.Cipher;
 
@@ -62,56 +63,34 @@ public class AesCipher {
             return new byte[0];
         }
     }
-    public byte[] encryptUsingCbc(String plainText, SecretKey key, boolean padding, byte[] iv) {
+
+    public byte[] encryptUsingCbc(String plainText, SecretKey key, byte[] iv) {
         try {
-            // Check if the IV is provided and has the correct length
-            if (iv == null || iv.length != 16) {
-                throw new IllegalArgumentException("IV must be 16 bytes long");
-            }
+            // Convert IV to IvParameterSpec
+            IvParameterSpec ivParameterSpec = new IvParameterSpec(iv);
 
             // Convert plaintext to bytes
-            byte[] plaintextBytes = plainText.getBytes(StandardCharsets.UTF_8);
+            byte[] plaintextBytes = plainText.getBytes();
 
-            // Apply padding if needed
-            if (padding) {
-                // Implement PKCS5 padding
-                int paddingLength = 16 - (plaintextBytes.length % 16);
-                byte[] paddedBytes = new byte[plaintextBytes.length + paddingLength];
-                System.arraycopy(plaintextBytes, 0, paddedBytes, 0, plaintextBytes.length);
-                Arrays.fill(paddedBytes, plaintextBytes.length, paddedBytes.length, (byte) paddingLength);
-                plaintextBytes = paddedBytes;
+            // Add PKCS5Padding to plaintext if needed
+            int paddingLength = 16 - (plaintextBytes.length % 16);
+            byte[] paddedPlaintext = Arrays.copyOf(plaintextBytes, plaintextBytes.length + paddingLength);
+            Arrays.fill(paddedPlaintext, plaintextBytes.length, paddedPlaintext.length, (byte) paddingLength);
+
+            // XOR padded plaintext with IV
+            for (int i = 0; i < paddedPlaintext.length; i++) {
+                paddedPlaintext[i] ^= iv[i % iv.length];
             }
 
-            // Initialize the result array with the correct size
-            byte[] result = new byte[plaintextBytes.length];
+            // Encrypt the modified plaintext using ECB
+            byte[] encryptedData = encryptUsingEcb(new String(paddedPlaintext), key, false);
 
-            // Initialize the previous ciphertext block with the IV
-            byte[] prevCiphertextBlock = iv;
-
-            // Iterate over blocks of plaintext
-            for (int i = 0; i < plaintextBytes.length; i += 16) {
-                // XOR the plaintext block with the previous ciphertext block
-                for (int j = 0; j < 16; j++) {
-                    plaintextBytes[i + j] ^= prevCiphertextBlock[j];
-                }
-
-                // Encrypt the XORed block using ECB
-                byte[] encryptedBlock = encryptUsingEcb(Arrays.toString(Arrays.copyOfRange(plaintextBytes, i, i + 16)), key, true);
-
-                // Copy the encrypted block to the correct position in the result array
-                System.arraycopy(encryptedBlock, 0, result, i, 16);
-
-                // Update the previous ciphertext block
-                prevCiphertextBlock = encryptedBlock;
-            }
-
-            return result;
+            return encryptedData;
         } catch (Exception e) {
             e.printStackTrace();
             return new byte[0];
         }
     }
-
 
     public String decryptUsingEcb(byte[] cipherText, SecretKey key, boolean padding) {
         try {
@@ -128,52 +107,27 @@ public class AesCipher {
             return null;
         }
     }
-    public String decryptUsingCbc(byte[] cipherText, SecretKey key, boolean padding, byte[] iv) {
+
+    public String decryptUsingCbc(byte[] encryptedData, SecretKey key, byte[] iv) {
         try {
-            // Check if the IV is provided and has the correct length
-            if (iv == null || iv.length != 16) {
-                throw new IllegalArgumentException("IV must be 16 bytes long");
+            // Convert IV to IvParameterSpec
+            IvParameterSpec ivParameterSpec = new IvParameterSpec(iv);
+
+            // Decrypt the encrypted data using ECB
+            byte[] decryptedData = decryptUsingEcb(encryptedData, key, false).getBytes();
+
+            // XOR decrypted data with IV to reverse the operation
+            for (int i = 0; i < decryptedData.length; i++) {
+                decryptedData[i] ^= iv[i % iv.length];
             }
 
-            // Initialize the result array with the correct size
-            byte[] result = new byte[cipherText.length];
-
-            // Initialize the previous ciphertext block with the IV
-            byte[] prevCiphertextBlock = iv;
-
-            // Iterate over blocks of ciphertext
-            for (int i = 0; i < cipherText.length; i += 16) {
-                // Extract the current ciphertext block
-                byte[] ciphertextBlock = Arrays.copyOfRange(cipherText, i, i + 16);
-
-                // Decrypt the ciphertext block using ECB
-                byte[] decryptedBlock = decryptUsingEcb(ciphertextBlock, key, true).getBytes();
-
-                // XOR the decrypted block with the previous ciphertext block
-                for (int j = 0; j < 16; j++) {
-                    decryptedBlock[j] ^= prevCiphertextBlock[j];
-                }
-
-                // Copy the XORed block to the correct position in the result array
-                System.arraycopy(decryptedBlock, 0, result, i, 16);
-
-                // Update the previous ciphertext block
-                prevCiphertextBlock = ciphertextBlock;
-            }
-
-            // Remove padding if needed
-            if (padding) {
-                int paddingLength = result[result.length - 1];
-                result = Arrays.copyOfRange(result, 0, result.length - paddingLength);
-            }
-
-            return new String(result, StandardCharsets.UTF_8);
+            // Convert the decrypted bytes to a String
+            return new String(decryptedData, StandardCharsets.UTF_8).trim();
         } catch (Exception e) {
             e.printStackTrace();
-            return null;
+            return "";
         }
     }
-
 
     public void testEcb() {
         try {
@@ -184,7 +138,7 @@ public class AesCipher {
 
             // Test encryption
             String plainText = "holacomoestas";
-            boolean usePadding = true;
+            boolean usePadding = false;
             byte[] encryptedText = encryptUsingEcb(plainText, secretKey, usePadding);
 
             // Convert the encrypted bytes to a Base64-encoded string for easier display
@@ -211,17 +165,17 @@ public class AesCipher {
             // Test encryption
             String plainText = "ariasmasajuanestosalebieno no ya veremos";
             System.out.println("Plain text: " + plainText);
-            boolean usePadding = true;
 
-            byte[] encryptedText = encryptUsingCbc(plainText, secretKey, usePadding, iv);
+            byte[] encryptedText = encryptUsingCbc(plainText, secretKey, iv);
 
             // Convert the encrypted bytes to a Base64-encoded string for easier display
             String base64EncryptedText = Base64.getEncoder().encodeToString(encryptedText);
             System.out.println("Encrypted Text: " + base64EncryptedText);
 
             // Test decryption
-            String decryptedText = decryptUsingCbc(Base64.getDecoder().decode(base64EncryptedText), secretKey, usePadding, iv);
+            String decryptedText = decryptUsingCbc(Base64.getDecoder().decode(base64EncryptedText), secretKey, iv);
             System.out.println("Decrypted Text: " + decryptedText);
+
         } catch (Exception e) {
             e.printStackTrace();
         }

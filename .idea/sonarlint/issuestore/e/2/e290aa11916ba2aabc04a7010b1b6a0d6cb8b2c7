@@ -1,31 +1,41 @@
 
+‡
+java:S1488V"eImmediately return this expression instead of assigning it to the temporary variable "encryptedData".(îûªÜÿÿÿÿÿ8ÃñÄ¼1
 U
-java:S4719"9Replace charset name argument with StandardCharsets.UTF_8(„…I8½•ßÃ¼1
-G	java:S106+"+Replace this use of System.out by a logger.(ìÍ¦‡8À•ßÃ¼1
-L	java:S106."+Replace this use of System.out by a logger.(Âã±ûÿÿÿÿ8À•ßÃ¼1
+java:S4719"9Replace charset name argument with StandardCharsets.UTF_8(„…I8÷ÇŞÄ¼1
+G	java:S106,"+Replace this use of System.out by a logger.(ìÍ¦‡8ıÇŞÄ¼1
+L	java:S106/"+Replace this use of System.out by a logger.(Âã±ûÿÿÿÿ8€ÈŞÄ¼1
 ;
-java:S55426"Use a secure cipher mode.(ˆ„ãÜùÿÿÿÿ8Á•ßÃ¼1
+java:S55427"Use a secure cipher mode.(ˆ„ãÜùÿÿÿÿ8ˆÈŞÄ¼1
 6
-java:S55428"Use a secure cipher mode.(Æ“„Ê8Â•ßÃ¼1
-;
-java:S5542w"Use a secure cipher mode.(ˆ„ãÜùÿÿÿÿ8ß•ßÃ¼1
-6
-java:S5542y"Use a secure cipher mode.(Æ“„Ê8à•ßÃ¼1
-H	java:S106·"+Replace this use of System.out by a logger.(Á‘®ê8ñ•ßÃ¼1
-C
-java:S2116·"%Use "Arrays.toString(array)" instead.(Á‘®ê8ò•ßÃ¼1
-M	java:S106À"+Replace this use of System.out by a logger.(³‘š®ûÿÿÿÿ8ô•ßÃ¼1
-H	java:S106Ä"+Replace this use of System.out by a logger.(Ç×€š8õ•ßÃ¼1
-M	java:S106Ñ"+Replace this use of System.out by a logger.(Ûô²¯øÿÿÿÿ8÷•ßÃ¼1
-H	java:S106Õ"+Replace this use of System.out by a logger.(ÍúŸ•8ø•ßÃ¼1
-M	java:S106Ü"+Replace this use of System.out by a logger.(³‘š®ûÿÿÿÿ8†–ßÃ¼1
-H	java:S106à"+Replace this use of System.out by a logger.(Ç×€š8‹–ßÃ¼1
+java:S55429"Use a secure cipher mode.(Æ“„Ê8ŠÈŞÄ¼1
 e
-java:S1128"CRemove this unused import 'java.security.NoSuchAlgorithmException'.(ŒòÍ¾şÿÿÿÿ8çàÄ¼1
+java:S1854F"CRemove this useless assignment to local variable "ivParameterSpec".(Ëıªøÿÿÿÿ8¾ñÄ¼1
+V
+java:S1481F"4Remove this unused "ivParameterSpec" local variable.(Ëıªøÿÿÿÿ8ÀñÄ¼1
+;
+java:S5542b"Use a secure cipher mode.(ˆ„ãÜùÿÿÿÿ8œÈŞÄ¼1
+6
+java:S5542d"Use a secure cipher mode.(Æ“„Ê8ÈŞÄ¼1
+e
+java:S1854r"CRemove this useless assignment to local variable "ivParameterSpec".(Ëıªøÿÿÿÿ8’·„Å¼1
+V
+java:S1481r"4Remove this unused "ivParameterSpec" local variable.(Ëıªøÿÿÿÿ8”·„Å¼1
+H	java:S106‰"+Replace this use of System.out by a logger.(Á‘®ê8²ÈŞÄ¼1
+C
+java:S2116‰"%Use "Arrays.toString(array)" instead.(Á‘®ê8³ÈŞÄ¼1
+M	java:S106’"+Replace this use of System.out by a logger.(³‘š®ûÿÿÿÿ8µÈŞÄ¼1
+H	java:S106–"+Replace this use of System.out by a logger.(Ç×€š8ÅÈŞÄ¼1
+M	java:S106£"+Replace this use of System.out by a logger.(Ûô²¯øÿÿÿÿ8ÚÈŞÄ¼1
+H	java:S106§"+Replace this use of System.out by a logger.(ÍúŸ•8ÜÈŞÄ¼1
+M	java:S106­"+Replace this use of System.out by a logger.(³‘š®ûÿÿÿÿ8­÷ãÄ¼1
+H	java:S106±"+Replace this use of System.out by a logger.(Ç×€š8ØæƒÅ¼1
+e
+java:S1128"CRemove this unused import 'java.security.NoSuchAlgorithmException'.(ŒòÍ¾şÿÿÿÿ8ŸÑ„Å¼1
 Y
-java:S1128"7Remove this unused import 'java.security.SecureRandom'.(›éè™úÿÿÿÿ8çàÄ¼1
+java:S1128"7Remove this unused import 'java.security.SecureRandom'.(›éè™úÿÿÿÿ8ŸÑ„Å¼1
 Q
-java:S1128	"4Remove this unused import 'java.util.logging.Level'.(…µÛ¶8èàÄ¼1
+java:S1128	"4Remove this unused import 'java.util.logging.Level'.(…µÛ¶8ŸÑ„Å¼1
 R
 java:S1128
-"5Remove this unused import 'java.util.logging.Logger'.(ƒ¥óš8èàÄ¼1
+"5Remove this unused import 'java.util.logging.Logger'.(ƒ¥óš8 Ñ„Å¼1
