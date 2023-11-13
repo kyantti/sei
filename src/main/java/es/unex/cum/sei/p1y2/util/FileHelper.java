@@ -2,9 +2,26 @@ package es.unex.cum.sei.p1y2.util;
 
 import es.unex.cum.sei.p1y2.math.Matrix;
 
+import javax.crypto.SecretKey;
+import javax.crypto.SecretKeyFactory;
+import javax.crypto.spec.SecretKeySpec;
 import java.io.*;
 
 public class FileHelper {
+    
+    private static FileHelper instance = null;
+
+    private FileHelper() {
+        // Private constructor to prevent external instantiation.
+    }
+
+    public static FileHelper getInstance() {
+        if (instance == null) {
+            instance = new FileHelper();
+        }
+        return instance;
+    }
+
     public static boolean fileExits(String fileName){
         File file = new File(fileName);
         return file.exists();
@@ -114,6 +131,7 @@ public class FileHelper {
         String[] tokens = fileContent.split("\\s+");
 
         if (tokens.length != 9) {
+            
             System.err.println("Invalid input format. The file should contain 9 integers separated by spaces.");
             return null;
         }
@@ -127,6 +145,27 @@ public class FileHelper {
         }
 
         return new Matrix(data);
+    }
+
+    public static SecretKey readSectetKeyFromFile(String file) {
+        SecretKey secretKey = null;
+        try {
+            FileInputStream fileInputStream = new FileInputStream(file);
+            ObjectInputStream objectInputStream = new ObjectInputStream(fileInputStream);
+
+            byte[] keyData = (byte[]) objectInputStream.readObject();
+
+            objectInputStream.close();
+            fileInputStream.close();
+
+            SecretKeyFactory secretKeyFactory = SecretKeyFactory.getInstance("AES");
+            secretKey = new SecretKeySpec(keyData, "AES");
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return secretKey;
     }
 
 }

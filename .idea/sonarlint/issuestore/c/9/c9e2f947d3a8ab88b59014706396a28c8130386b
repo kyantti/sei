@@ -1,0 +1,18 @@
+
+n	java:S135^"YReduce the total number of break and continue statements in this loop to use at most one.(•Ê‚’
+m	java:S1274"XRefactor the code in order to not assign to this loop counter from within the loop body.(Ì‚ˆÌ
+S
+java:S2589ì"7Remove this expression which always evaluates to "true"(·Ã«¸üÿÿÿÿ
+R
+java:S2696¡"6Make the enclosing method "static" or remove this set.(ëÜºÃşÿÿÿÿ
+M
+java:S2696¤"6Make the enclosing method "static" or remove this set.(Ï¤¶
+M
+java:S2696§"6Make the enclosing method "static" or remove this set.(‘Äëµ
+F	java:S106¹"+Replace this use of System.err by a logger.(’¥ëßÿÿÿÿÿ
+n
+java:S3776â"RRefactor this method to reduce its Cognitive Complexity from 25 to the 15 allowed.(õ¥Ø˜úÿÿÿÿ
+A	java:S106Ğ"+Replace this use of System.err by a logger.(±¦
+A	java:S106Ú"+Replace this use of System.err by a logger.(ôÔí°
+A	java:S106á"+Replace this use of System.out by a logger.(Îñë
+A	java:S106ë"+Replace this use of System.out by a logger.(Îñë
