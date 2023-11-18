@@ -64,11 +64,16 @@ public class AesCipher {
         }
     }
 
-    public byte[] encryptUsingCbc(String plainText, SecretKey key, byte[] iv) {
+    public byte[] encryptUsingCbc(String plainText, SecretKey key, byte[] iv, boolean debugModeEnabled){
         try {
-            // Convert IV to IvParameterSpec
-            IvParameterSpec ivParameterSpec = new IvParameterSpec(iv);
-
+            //Print iv hex
+            if (debugModeEnabled){
+                System.out.println("Vector de inicialización (hex): " + bytesToHex(iv));
+            }
+            //Print iv dec
+            if (debugModeEnabled){
+                System.out.println("Vector de inicialización (dec): " + Arrays.toString(iv));
+            }
             // Convert plaintext to bytes
             byte[] plaintextBytes = plainText.getBytes();
 
@@ -84,7 +89,6 @@ public class AesCipher {
             for (int i = 0; i < paddedPlaintext.length; i++) {
                 currentByteOfPaddedPlaintext = paddedPlaintext[i];
                 correspondingByteOfIV = iv[i % iv.length];
-
                 // Perform bitwise XOR operation
                 paddedPlaintext[i] = (byte) (currentByteOfPaddedPlaintext ^ correspondingByteOfIV);
             }
@@ -115,7 +119,7 @@ public class AesCipher {
         }
     }
 
-    public String decryptUsingCbc(byte[] encryptedData, SecretKey key, byte[] iv) {
+    public String decryptUsingCbc(byte[] encryptedData, SecretKey key, byte[] iv, boolean debugModeEnabled) {
         try {
             // Convert IV to IvParameterSpec
             IvParameterSpec ivParameterSpec = new IvParameterSpec(iv);
@@ -132,6 +136,7 @@ public class AesCipher {
                 correspondingByteOfIV = iv[i % iv.length];
                 // Perform bitwise XOR operation
                 decryptedData[i] = (byte) (currentByteOfDecryptedData ^ correspondingByteOfIV);
+
             }
 
             // Convert the decrypted bytes to a String
@@ -141,6 +146,10 @@ public class AesCipher {
             e.printStackTrace();
             return "";
         }
+    }
+
+    public static String byteToHex(byte value) {
+        return String.format("%02X", value);
     }
 
     // Helper method to convert a byte array to a hexadecimal string
@@ -195,7 +204,7 @@ public class AesCipher {
             System.out.println("Test AES en modo CBC");
             String userKey = "dostrescua";
             int keyLength = 128;
-            byte[] iv = {67, 78, 31, 123, 3, 99, 34, 33, 21, 67, 78, 31, 123, 3, 99, 34};
+            byte[] iv = {67, 78, 31, 123, 3, 99, 34, 33, 21, 67, 78, 31, 123, 3, 99, 34, 33, 21};
 
             SecretKey secretKey = generateKey(userKey, keyLength);
             String hexKey = bytesToHex(secretKey.getEncoded());
@@ -205,7 +214,7 @@ public class AesCipher {
             String plainText = "ariasmasajuanestosalebieno no ya veremos";
             System.out.println("Plain text: " + plainText);
 
-            byte[] encryptedText = encryptUsingCbc(plainText, secretKey, iv);
+            byte[] encryptedText = encryptUsingCbc(plainText, secretKey, iv, true);
 
             // Convert the encrypted bytes to a Base64-encoded string for easier display
             String base64EncryptedText = Base64.getEncoder().encodeToString(encryptedText);
@@ -213,7 +222,7 @@ public class AesCipher {
             System.out.println("Encrypted Text (hex): " + bytesToHex(encryptedText));
 
             // Test decryption
-            String decryptedText = decryptUsingCbc(Base64.getDecoder().decode(base64EncryptedText), secretKey, iv);
+            String decryptedText = decryptUsingCbc(Base64.getDecoder().decode(base64EncryptedText), secretKey, iv, true);
             System.out.println("Decrypted Text: " + decryptedText);
 
         } catch (Exception e) {

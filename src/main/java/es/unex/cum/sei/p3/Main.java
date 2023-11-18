@@ -1,9 +1,8 @@
 package es.unex.cum.sei.p3;
 
-import es.unex.cum.sei.p1y2.math.Matrix;
-import es.unex.cum.sei.p1y2.util.Configuration;
 import es.unex.cum.sei.p1y2.util.FileHelper;
 import es.unex.cum.sei.p3.cipher.AesCipher;
+import es.unex.cum.sei.p3.util.Configuration;
 
 import javax.crypto.KeyGenerator;
 import javax.crypto.SecretKey;
@@ -14,15 +13,13 @@ import java.util.Base64;
 
 public class Main {
     public static AesCipher aesCipher;
-    public static SecretKey secretKey;
-    public static boolean padding;
 
     public Main(String[] args){
         aesCipher = new AesCipher();
         new Configuration(args);
     }
 
-    private byte[] convertStringArrayToByteArray(String[] strings) {
+    private static byte[] convertStringArrayToByteArray(String[] strings) {
         byte[] byteArray = new byte[strings.length];
         for (int i = 0; i < strings.length; i++) {
             try {
@@ -60,39 +57,67 @@ public class Main {
             byte[]  encryptedText = aesCipher.encryptUsingEcb(plainText, secretKey, padding);
             String base64EncryptedText = Base64.getEncoder().encodeToString(encryptedText);
 
-            System.out.println("Encrypted Text: " + base64EncryptedText);
-            System.out.println("Encrypted Text (hex): " + bytesToHex(encryptedText));
+            System.out.println("Texto cifrado: " + base64EncryptedText);
+            System.out.println("Texto cifrado (hex): " + bytesToHex(encryptedText));
             FileHelper.saveToFile(base64EncryptedText, outputFile);
+            System.out.println("Texto cifrado guardado en: " + outputFile);
 
-            System.out.println("Texto cifrado: " + encryptedText);
         }
         catch (IllegalArgumentException illegalArgumentException){
             illegalArgumentException.printStackTrace();
         }
     }
 
-    public void encryptUsingCbc(String inputFile, String keyFile, String outputFile, boolean debugModeEnabled, String[] bytes){
+    public static void encryptUsingCbc(String inputFile, SecretKey secretKey, String outputFile, boolean debugModeEnabled, String[] bytes){
         try{
-            String textToEncrypt = FileHelper.readFromFile(inputFile);
-            SecretKey key;
+            String plainText = FileHelper.readFromFile(inputFile);
+            byte[] iv = convertStringArrayToByteArray(bytes);
+            String hexKey = bytesToHex(secretKey.getEncoded());
 
-            if (keyFile != null){
-                key = FileHelper.getMatrixFromFile(keyFile);
-            }
-            else{
-                key = getDefaulKeytMatrix();
-            }
+            System.out.println("Clave (hex): " + hexKey);
+            System.out.println("Plain text: " + plainText);
 
-            String encryptedText =
-            FileHelper.saveToFile(encryptedText, outputFile);
+            byte[] encryptedText = aesCipher.encryptUsingCbc(plainText, secretKey, iv, debugModeEnabled);
 
-            System.out.println("Texto a cifrar: " + textToEncrypt);
-            System.out.println("Cifrando mediante el algoritmo AES...");
-            if (debugModeEnabled){
-                System.out.println("Clave: " + key.toString());
-            }
+            String base64EncryptedText = Base64.getEncoder().encodeToString(encryptedText);
+            System.out.println("Encrypted Text: " + base64EncryptedText);
+            System.out.println("Encrypted Text (hex): " + bytesToHex(encryptedText));
 
-            System.out.println("Texto cifrado: " + encryptedText);
+            FileHelper.saveToFile(base64EncryptedText, outputFile);
+
+        }
+        catch (IllegalArgumentException illegalArgumentException){
+            illegalArgumentException.printStackTrace();
+        }
+    }
+
+    public static void decryptUsingEcb(String inputFile, SecretKey key, String outputFile, boolean debugModeEnabled, boolean padding){
+        try{
+            byte[] encryptedText = Base64.getDecoder().decode(FileHelper.readFromFile(inputFile).getBytes());
+            String decryptedText = aesCipher.decryptUsingEcb(encryptedText, key, padding);
+            System.out.println("Texto descifrado: " + decryptedText);
+            FileHelper.saveToFile(decryptedText, outputFile);
+            System.out.println("Texto descifrado guardado en: " + outputFile);
+        }
+        catch (IllegalArgumentException illegalArgumentException){
+            illegalArgumentException.printStackTrace();
+        }
+    }
+
+    public static void decryptUsingCbc(String inputFile, SecretKey secretKey, String outputFile, boolean debugModeEnabled, String[] bytes){
+        try{
+            String encryptedText = FileHelper.readFromFile(inputFile);
+            byte[] iv = convertStringArrayToByteArray(bytes);
+            String hexKey = bytesToHex(secretKey.getEncoded());
+
+            System.out.println("Clave (hex): " + hexKey);
+            System.out.println("Encrypted text: " + encryptedText);
+
+            String base64EncryptedText = Base64.getEncoder().encodeToString(FileHelper.readFromFile(inputFile).getBytes());
+            String decryptedText = aesCipher.decryptUsingCbc(Base64.getDecoder().decode(base64EncryptedText), secretKey, iv, debugModeEnabled);
+
+            System.out.println("Decrypted Text: " + decryptedText);
+            FileHelper.saveToFile(decryptedText, outputFile);
         }
         catch (IllegalArgumentException illegalArgumentException){
             illegalArgumentException.printStackTrace();
@@ -132,5 +157,9 @@ public class Main {
             System.out.println("Clave (hex): " + bytesToHex(key.getEncoded()));
         }
         return key;
+    }
+
+    public static void main(String[] args) {
+        new Main(args);
     }
 }

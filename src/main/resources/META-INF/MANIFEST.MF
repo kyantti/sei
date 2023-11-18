@@ -1,3 +1,3 @@
 Manifest-Version: 1.0
-Main-Class: es.unex.cum.sei.p1y2.Main
+Main-Class: es.unex.cum.sei.p3.Main
 

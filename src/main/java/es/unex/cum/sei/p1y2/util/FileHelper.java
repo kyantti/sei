@@ -147,31 +147,23 @@ public class FileHelper {
         return new Matrix(data);
     }
 
-    public static SecretKey readSectetKeyFromFile(String file) {
+    public static SecretKey readSecretKeyFromFile(String filePath) {
         SecretKey secretKey = null;
-        try {
-            FileInputStream fileInputStream = new FileInputStream(file);
-            ObjectInputStream objectInputStream = new ObjectInputStream(fileInputStream);
 
-            byte[] keyData = (byte[]) objectInputStream.readObject();
-
-            objectInputStream.close();
-            fileInputStream.close();
-
-            SecretKeyFactory secretKeyFactory = SecretKeyFactory.getInstance("AES");
-            secretKey = new SecretKeySpec(keyData, "AES");
-
-        } catch (Exception e) {
-            e.printStackTrace();
+        try (ObjectInputStream inputStream = new ObjectInputStream(new FileInputStream(filePath))) {
+            secretKey = (SecretKey) inputStream.readObject();
+        } catch (IOException | ClassNotFoundException e) {
+            e.printStackTrace(); // Handle the exception according to your needs
         }
 
         return secretKey;
     }
 
+
     public static void saveSecretKeyToFile(SecretKey secretKey, String fileName) {
         try (ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(fileName))) {
             oos.writeObject(secretKey);
-            System.out.println("SecretKey saved to " + fileName);
+            System.out.println("SecretKey guardada en: " + fileName);
         } catch (IOException e) {
             e.printStackTrace();
         }

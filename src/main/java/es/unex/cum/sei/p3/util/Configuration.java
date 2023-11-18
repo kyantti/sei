@@ -2,6 +2,7 @@ package es.unex.cum.sei.p3.util;
 
 import es.unex.cum.sei.p3.Main;
 import es.unex.cum.sei.p1y2.util.FileHelper;
+import es.unex.cum.sei.p3.cipher.AesCipher;
 
 import javax.crypto.SecretKey;
 import java.util.Arrays;
@@ -199,14 +200,14 @@ public class Configuration {
             String value = parts[2];
             handleTwoWordCommand(commandName, value);
         }
-        else if (parts.length > 3){
+        else if (parts.length > 3 && commandName.equals("genera_clave")){
             String keySize = parts[2];
             String algorithm = parts[3];
             String[] keyCharacters = Arrays.copyOfRange(parts, 4, parts.length);
             String array = String.join("", keyCharacters).trim();
             handleGenerateKeyCommand(keySize, algorithm, array);
         }
-        else if (parts.length == 17 && commandName.equals("cbc")) {
+        else if (parts.length == 18 && commandName.equals("cbc")) {
             handleCBCCipherCommand(Arrays.copyOfRange(parts, 2, parts.length));
         }
         else {
@@ -218,10 +219,10 @@ public class Configuration {
 
     private void handleCBCCipherCommand(String[] strings) {
         if(encryptFlag.equals("ON")){
-            Main.encryptUsingCbc(inputFile, outputFile, strings);
+            Main.encryptUsingCbc(inputFile, key, outputFile, debugModeEnabled, strings);
         }
         else if (encryptFlag.equals("OFF")){
-            Main.decryptUsingCbc(inputFile, outputFile, strings);
+            Main.decryptUsingCbc(inputFile, key, outputFile, debugModeEnabled, strings);
         }
         else {
             System.err.println("¡Error! No se especificó la bandera codifica");
@@ -230,7 +231,7 @@ public class Configuration {
     }
 
     private void handleGenerateKeyCommand(String keySize, String algorithm, String array) {
-       if (algorithm.isEmpty() || !algorithm.equals("AES")){
+       if (algorithm.equals("AES")){
            SecretKey secretKey = Main.generateKey(array, Integer.parseInt(keySize), debugModeEnabled);
            FileHelper.saveSecretKeyToFile(secretKey, keyFile);
            key = secretKey;
@@ -276,7 +277,7 @@ public class Configuration {
             case "carga_clave" -> {
                 if (value.equals("AES")) {
                     if (FileHelper.fileExits(keyFile)) {
-                        SecretKey secretKey = FileHelper.readSectetKeyFromFile(keyFile);
+                        SecretKey secretKey = FileHelper.readSecretKeyFromFile(keyFile);
                         if (secretKey != null) {
                             key = secretKey;
                             System.out.println("Clave cargada con éxito");
@@ -293,7 +294,7 @@ public class Configuration {
                     System.err.println("¡Error! No se especificó el algoritmo");
                 }
             }
-            case "AES" ->{
+            case "aes" ->{
                 if (value.equals("conRelleno")){
                     padding = true;
                     if (encryptFlag.equals("ON")){

@@ -1,8 +1,0 @@
-<component name="ArtifactManager">
-  <artifact type="jar" name="sei:jar">
-    <output-path>$PROJECT_DIR$/out/artifacts/es/unex/cum/sei/p1y2</output-path>
-    <root id="archive" name="sei.jar">
-      <element id="module-output" name="sei" />
-    </root>
-  </artifact>
-</component>
