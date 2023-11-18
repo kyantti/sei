@@ -35,13 +35,13 @@ public class AesCipher {
 
                     key = new SecretKeySpec(usuarioClaveByte, "AES");
                 } else {
-                    KeyGenerator generadorAES = KeyGenerator.getInstance("AES");
-                    generadorAES.init(keyLength);
-                    key = generadorAES.generateKey();
+                    KeyGenerator aesKeyGenerator = KeyGenerator.getInstance("AES");
+                    aesKeyGenerator.init(keyLength);
+                    key = aesKeyGenerator.generateKey();
 
                 }
             } catch (Exception e) {
-                System.out.println(e.toString());
+                System.out.println(e);
             }
         } else {
             System.out.println(" -- Error: Tamaño de clave no válido para AES. Debe ser 128, 192 o 256 bits o un numero múltiplo de 4.");
@@ -136,27 +136,50 @@ public class AesCipher {
 
             // Convert the decrypted bytes to a String
             return new String(decryptedData, StandardCharsets.UTF_8).trim();
+            
         } catch (Exception e) {
             e.printStackTrace();
             return "";
         }
     }
 
+    // Helper method to convert a byte array to a hexadecimal string
+    private static String bytesToHex(byte[] bytes) {
+        StringBuilder hexString = new StringBuilder();
+        for (byte b : bytes) {
+            String hex = Integer.toHexString(0xff & b);
+            if (hex.length() == 1) {
+                hexString.append('0');
+            }
+            hexString.append(hex);
+            hexString.append(':');
+        }
+        // Remove the last ":"
+        hexString.setLength(hexString.length() - 1);
+        return hexString.toString();
+    }
+
     public void testEcb() {
         try {
+            System.out.println("Test AES en modo ECB");
             String userKey = "12345678901234567890123456789012345678901234";
             int keyLength = 192;
             SecretKey secretKey = generateKey(userKey, keyLength);
-            System.out.println("Clave: " + secretKey.getEncoded().toString());
+
+            System.out.println("Password de usuario: " + userKey);
+
+            String hexKey = bytesToHex(secretKey.getEncoded());
+            System.out.println("Clave (hex): " + hexKey);
 
             // Test encryption
             String plainText = "holacomoestas";
-            boolean usePadding = false;
+            boolean usePadding = true;
             byte[] encryptedText = encryptUsingEcb(plainText, secretKey, usePadding);
 
             // Convert the encrypted bytes to a Base64-encoded string for easier display
             String base64EncryptedText = Base64.getEncoder().encodeToString(encryptedText);
             System.out.println("Encrypted Text: " + base64EncryptedText);
+            System.out.println("Encrypted Text (hex): " + bytesToHex(encryptedText));
 
             // Test decryption
             String decryptedText = decryptUsingEcb(Base64.getDecoder().decode(base64EncryptedText), secretKey, usePadding);
@@ -164,16 +187,19 @@ public class AesCipher {
         } catch (Exception e) {
             e.printStackTrace();
         }
+
     }
 
     public void testCbc(){
         try {
+            System.out.println("Test AES en modo CBC");
             String userKey = "dostrescua";
             int keyLength = 128;
             byte[] iv = {67, 78, 31, 123, 3, 99, 34, 33, 21, 67, 78, 31, 123, 3, 99, 34};
 
             SecretKey secretKey = generateKey(userKey, keyLength);
-            System.out.println("Clave: " + Arrays.toString(secretKey.getEncoded()));
+            String hexKey = bytesToHex(secretKey.getEncoded());
+            System.out.println("Clave (hex): " + hexKey);
 
             // Test encryption
             String plainText = "ariasmasajuanestosalebieno no ya veremos";
@@ -184,6 +210,7 @@ public class AesCipher {
             // Convert the encrypted bytes to a Base64-encoded string for easier display
             String base64EncryptedText = Base64.getEncoder().encodeToString(encryptedText);
             System.out.println("Encrypted Text: " + base64EncryptedText);
+            System.out.println("Encrypted Text (hex): " + bytesToHex(encryptedText));
 
             // Test decryption
             String decryptedText = decryptUsingCbc(Base64.getDecoder().decode(base64EncryptedText), secretKey, iv);
@@ -197,6 +224,7 @@ public class AesCipher {
     public static void main(String[] args) {
         AesCipher aesCipher = new AesCipher();
         aesCipher.testCbc();
+        aesCipher.testEcb();
     }
 
 }

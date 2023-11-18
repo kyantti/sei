@@ -168,4 +168,13 @@ public class FileHelper {
         return secretKey;
     }
 
+    public static void saveSecretKeyToFile(SecretKey secretKey, String fileName) {
+        try (ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(fileName))) {
+            oos.writeObject(secretKey);
+            System.out.println("SecretKey saved to " + fileName);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
 }

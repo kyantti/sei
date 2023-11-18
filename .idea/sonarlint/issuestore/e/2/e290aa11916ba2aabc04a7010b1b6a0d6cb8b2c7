@@ -21,15 +21,15 @@ e
 java:S1854y"CRemove this useless assignment to local variable "ivParameterSpec".(žËýªøÿÿÿÿ8’·„Å¼1
 V
 java:S1481y"4Remove this unused "ivParameterSpec" local variable.(žËýªøÿÿÿÿ8”·„Å¼1
-H	java:S106–"+Replace this use of System.out by a logger.(Á‘®ê8²ÈÞÄ¼1
+H	java:S106—"+Replace this use of System.out by a logger.(Á‘®ê8²ÈÞÄ¼1
 C
-java:S2116–"%Use "Arrays.toString(array)" instead.(Á‘®ê8³ÈÞÄ¼1
-M	java:S106Ÿ"+Replace this use of System.out by a logger.(³‘š®ûÿÿÿÿ8µÈÞÄ¼1
-H	java:S106£"+Replace this use of System.out by a logger.(Ç×€š8ÅÈÞÄ¼1
-M	java:S106°"+Replace this use of System.out by a logger.(Ûô²¯øÿÿÿÿ8ÚÈÞÄ¼1
-H	java:S106´"+Replace this use of System.out by a logger.(ÍúŸ•8ÜÈÞÄ¼1
-M	java:S106º"+Replace this use of System.out by a logger.(³‘š®ûÿÿÿÿ8­÷ãÄ¼1
-H	java:S106¾"+Replace this use of System.out by a logger.(Ç×€š8ØæƒÅ¼1
+java:S2116—"%Use "Arrays.toString(array)" instead.(Á‘®ê8³ÈÞÄ¼1
+M	java:S106 "+Replace this use of System.out by a logger.(³‘š®ûÿÿÿÿ8µÈÞÄ¼1
+H	java:S106¤"+Replace this use of System.out by a logger.(Ç×€š8ÅÈÞÄ¼1
+M	java:S106±"+Replace this use of System.out by a logger.(Ûô²¯øÿÿÿÿ8ÚÈÞÄ¼1
+H	java:S106µ"+Replace this use of System.out by a logger.(ÍúŸ•8ÜÈÞÄ¼1
+M	java:S106»"+Replace this use of System.out by a logger.(³‘š®ûÿÿÿÿ8­÷ãÄ¼1
+H	java:S106¿"+Replace this use of System.out by a logger.(Ç×€š8ØæƒÅ¼1
 e
 java:S1128"CRemove this unused import 'java.security.NoSuchAlgorithmException'.(ŒòÍ¾þÿÿÿÿ8ž ¦Å¼1
 Y
