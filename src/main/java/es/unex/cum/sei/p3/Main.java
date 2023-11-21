@@ -7,6 +7,8 @@ import es.unex.cum.sei.p3.util.Configuration;
 import javax.crypto.KeyGenerator;
 import javax.crypto.SecretKey;
 import javax.crypto.spec.SecretKeySpec;
+import java.io.UnsupportedEncodingException;
+import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.util.Arrays;
 import java.util.Base64;
@@ -19,6 +21,12 @@ public class Main {
         new Configuration(args);
     }
 
+    /**
+     * Convierte un array de strings en un array de bytes.
+     *
+     * @param strings El array de strings a convertir.
+     * @return Un array de bytes.
+     */
     private static byte[] convertStringArrayToByteArray(String[] strings) {
         byte[] byteArray = new byte[strings.length];
         for (int i = 0; i < strings.length; i++) {
@@ -33,6 +41,12 @@ public class Main {
         return byteArray;
     }
 
+    /**
+     * Convierte un array de bytes en una cadena hexadecimal.
+     *
+     * @param bytes El array de bytes a convertir.
+     * @return Una cadena hexadecimal.
+     */
     private static String bytesToHex(byte[] bytes) {
         StringBuilder hexString = new StringBuilder();
         for (byte b : bytes) {
@@ -48,11 +62,20 @@ public class Main {
         return hexString.toString();
     }
 
+    /**
+     * Cifra un archivo utilizando el modo ECB.
+     *
+     * @param inputFile         El nombre del archivo de entrada.
+     * @param secretKey         La clave secreta.
+     * @param outputFile        El nombre del archivo de salida.
+     * @param debugModeEnabled  Indica si se debe habilitar el modo de depuración.
+     * @param padding           Indica si se debe aplicar relleno.
+     */
     public static void encryptUsingEcb(String inputFile, SecretKey secretKey, String outputFile, boolean debugModeEnabled, boolean padding){
         try{
             String plainText = FileHelper.readFromFile(inputFile);
             System.out.println("Texto a cifrar: " + plainText);
-            System.out.println("Cifrando mediante el algoritmo AES...");
+            System.out.println("Cifrando mediante el algoritmo AES ECB...");
 
             byte[]  encryptedText = aesCipher.encryptUsingEcb(plainText, secretKey, padding);
             String base64EncryptedText = Base64.getEncoder().encodeToString(encryptedText);
@@ -67,30 +90,48 @@ public class Main {
             illegalArgumentException.printStackTrace();
         }
     }
-
+    /**
+     * Descifra un archivo utilizando el modo CBC.
+     *
+     * @param inputFile         El nombre del archivo de entrada.
+     * @param secretKey         La clave secreta.
+     * @param outputFile        El nombre del archivo de salida.
+     * @param debugModeEnabled  Indica si se debe habilitar el modo de depuración.
+     * @param bytes             El array de bytes para el vector de inicialización.
+     */
     public static void encryptUsingCbc(String inputFile, SecretKey secretKey, String outputFile, boolean debugModeEnabled, String[] bytes){
-        try{
-            String plainText = FileHelper.readFromFile(inputFile);
-            byte[] iv = convertStringArrayToByteArray(bytes);
-            String hexKey = bytesToHex(secretKey.getEncoded());
+       try {
+           String plainText = FileHelper.readFromFile(inputFile);
+           System.out.println("Texto a cifrar: " + plainText);
+           if (plainText.getBytes().length >= 16){
+               System.out.println("Cifrando mediante el algoritmo AES CBC...");
 
-            System.out.println("Clave (hex): " + hexKey);
-            System.out.println("Plain text: " + plainText);
+               byte[] iv = convertStringArrayToByteArray(bytes);
+               byte[] encryptedText = aesCipher.encryptUsingCbc(plainText, secretKey, iv, debugModeEnabled);
+               String base64EncryptedText = Base64.getEncoder().encodeToString(encryptedText);
 
-            byte[] encryptedText = aesCipher.encryptUsingCbc(plainText, secretKey, iv, debugModeEnabled);
-
-            String base64EncryptedText = Base64.getEncoder().encodeToString(encryptedText);
-            System.out.println("Encrypted Text: " + base64EncryptedText);
-            System.out.println("Encrypted Text (hex): " + bytesToHex(encryptedText));
-
-            FileHelper.saveToFile(base64EncryptedText, outputFile);
-
-        }
-        catch (IllegalArgumentException illegalArgumentException){
-            illegalArgumentException.printStackTrace();
-        }
+               System.out.println("Texto cifrado: " + base64EncryptedText);
+               System.out.println("Texto cifrado (hex): " + bytesToHex(encryptedText));
+               FileHelper.saveToFile(base64EncryptedText, outputFile);
+               System.out.println("Texto cifrado guardado en: " + outputFile);
+           }
+           else {
+               System.out.println("El texto a cifrar debe tener al menos 16 bytes");
+           }
+       }
+       catch (IllegalArgumentException illegalArgumentException){
+           illegalArgumentException.printStackTrace();
+       }
     }
-
+    /**
+     * Descifra un archivo utilizando el modo ECB.
+     *
+     * @param inputFile         El nombre del archivo de entrada.
+     * @param key               La clave secreta.
+     * @param outputFile        El nombre del archivo de salida.
+     * @param debugModeEnabled  Indica si se debe habilitar el modo de depuración.
+     * @param padding           Indica si se debe aplicar relleno.
+     */
     public static void decryptUsingEcb(String inputFile, SecretKey key, String outputFile, boolean debugModeEnabled, boolean padding){
         try{
             byte[] encryptedText = Base64.getDecoder().decode(FileHelper.readFromFile(inputFile).getBytes());
@@ -104,26 +145,54 @@ public class Main {
         }
     }
 
+    private static String convertByteArrayToText(byte[] byteArray) throws UnsupportedEncodingException {
+        // Use the appropriate encoding (UTF-8 in this example)
+        return new String(byteArray, StandardCharsets.UTF_8);
+    }
+
+    /**
+     * Descifra un archivo utilizando el modo CBC.
+     *
+     * @param inputFile         El nombre del archivo de entrada.
+     * @param secretKey         La clave secreta.
+     * @param outputFile        El nombre del archivo de salida.
+     * @param debugModeEnabled  Indica si se debe habilitar el modo de depuración.
+     * @param bytes             El array de bytes para el vector de inicialización.
+     */
     public static void decryptUsingCbc(String inputFile, SecretKey secretKey, String outputFile, boolean debugModeEnabled, String[] bytes){
         try{
-            String encryptedText = FileHelper.readFromFile(inputFile);
-            byte[] iv = convertStringArrayToByteArray(bytes);
-            String hexKey = bytesToHex(secretKey.getEncoded());
+            byte[] encryptedText = Base64.getDecoder().decode(FileHelper.readFromFile(inputFile).getBytes());
+            if (encryptedText.length % 16 == 0){
+                byte[] iv = convertStringArrayToByteArray(bytes);
+                String hexKey = bytesToHex(secretKey.getEncoded());
 
-            System.out.println("Clave (hex): " + hexKey);
-            System.out.println("Encrypted text: " + encryptedText);
+                System.out.println("Clave (hex): " + hexKey);
+                String base64EncryptedText = Base64.getEncoder().encodeToString(encryptedText);
+                System.out.println("Texto a descifrar: " + base64EncryptedText);
+                System.out.println("Descifrando mediante el algoritmo AES CBC...");
 
-            String base64EncryptedText = Base64.getEncoder().encodeToString(FileHelper.readFromFile(inputFile).getBytes());
-            String decryptedText = aesCipher.decryptUsingCbc(Base64.getDecoder().decode(base64EncryptedText), secretKey, iv, debugModeEnabled);
+                String decryptedText = aesCipher.decryptUsingCbc(encryptedText, secretKey, iv, debugModeEnabled);
 
-            System.out.println("Decrypted Text: " + decryptedText);
-            FileHelper.saveToFile(decryptedText, outputFile);
+                System.out.println("Texto descifrado: " + decryptedText);
+                FileHelper.saveToFile(decryptedText, outputFile);
+                System.out.println("Texto descifrado guardado en: " + outputFile);
+            }
+            else {
+                System.out.println("El criptograma a descifrar debe tener un tamaño múltiplo de 16 bytes");
+            }
         }
         catch (IllegalArgumentException illegalArgumentException){
             illegalArgumentException.printStackTrace();
         }
     }
-
+    /**
+     * Genera una clave secreta utilizando el algoritmo AES.
+     *
+     * @param userPassword      La contraseña del usuario.
+     * @param keyLength         La longitud de la clave.
+     * @param debugModeEnabled  Indica si se debe habilitar el modo de depuración.
+     * @return La clave secreta generada.
+     */
     public static SecretKey generateKey(String userPassword, int keyLength, boolean debugModeEnabled){
         SecretKey key = null;
         if (keyLength == 128 || keyLength == 192 || keyLength == 256 || (keyLength % 4 == 0)) {
@@ -160,6 +229,10 @@ public class Main {
     }
 
     public static void main(String[] args) {
+        //aesCipher = new AesCipher();
+        //SecretKey secretKey = generateKey("dostrescua", 128, true);
+        //String[] iv = {"67","78", "31", "1233", "99", "34", "33", "21", "67", "78", "31", "1233", "99", "34", "33", "21"};
+        //encryptUsingCbc("src/main/resources/quijoteparacbc.txt", secretKey, "src/main/resources/hola.txt", true, iv );
         new Main(args);
     }
 }

@@ -208,7 +208,8 @@ public class Configuration {
             handleGenerateKeyCommand(keySize, algorithm, array);
         }
         else if (parts.length == 18 && commandName.equals("cbc")) {
-            handleCBCCipherCommand(Arrays.copyOfRange(parts, 2, parts.length));
+            String [] iv = Arrays.copyOfRange(parts, 2, parts.length);
+            handleCBCCipherCommand(iv);
         }
         else {
             System.err.println("Comando invalido: " + commandName);

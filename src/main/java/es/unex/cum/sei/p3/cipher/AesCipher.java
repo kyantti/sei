@@ -1,9 +1,11 @@
 package es.unex.cum.sei.p3.cipher;
 
+import java.io.UnsupportedEncodingException;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
+import java.security.SignedObject;
 import java.util.Arrays;
 import java.util.Base64;
 import java.util.logging.Level;
@@ -22,7 +24,14 @@ public class AesCipher {
     public AesCipher() {
         cipher = null;
     }
-
+    /**
+     * Genera una clave secreta basada en la clave proporcionada por el usuario o
+     * una clave generada aleatoriamente.
+     *
+     * @param userKey   La clave proporcionada por el usuario.
+     * @param keyLength La longitud de la clave en bits (128, 192 o 256).
+     * @return La clave secreta generada.
+     */
     public SecretKey generateKey(String userKey, int keyLength) {
         SecretKey key = null;
         if (keyLength == 128 || keyLength == 192 || keyLength == 256 || (keyLength % 4 == 0)) {
@@ -48,7 +57,14 @@ public class AesCipher {
         }
         return key;
     }
-
+    /**
+     * Cifra un texto usando el modo ECB (Electronic Codebook) del algoritmo AES.
+     *
+     * @param plainText El texto plano a cifrar.
+     * @param key       La clave secreta para el cifrado.
+     * @param padding   Indica si se debe aplicar relleno PKCS5Padding.
+     * @return El texto cifrado como un array de bytes.
+     */
     public byte[] encryptUsingEcb(String plainText, SecretKey key, boolean padding) {
         try {
             if (padding) {
@@ -63,46 +79,141 @@ public class AesCipher {
             return new byte[0];
         }
     }
-
-    public byte[] encryptUsingCbc(String plainText, SecretKey key, byte[] iv, boolean debugModeEnabled){
-        try {
-            //Print iv hex
-            if (debugModeEnabled){
-                System.out.println("Vector de inicialización (hex): " + bytesToHex(iv));
-            }
-            //Print iv dec
-            if (debugModeEnabled){
-                System.out.println("Vector de inicialización (dec): " + Arrays.toString(iv));
-            }
-            // Convert plaintext to bytes
-            byte[] plaintextBytes = plainText.getBytes();
-
-            // Add PKCS5Padding to plaintext if needed
-            int paddingLength = 16 - (plaintextBytes.length % 16);
-            byte[] paddedPlaintext = Arrays.copyOf(plaintextBytes, plaintextBytes.length + paddingLength);
-            Arrays.fill(paddedPlaintext, plaintextBytes.length, paddedPlaintext.length, (byte) paddingLength);
-
-            // XOR padded plaintext with IV
-            byte currentByteOfPaddedPlaintext = 0;
-            byte correspondingByteOfIV = 0;
-
-            for (int i = 0; i < paddedPlaintext.length; i++) {
-                currentByteOfPaddedPlaintext = paddedPlaintext[i];
-                correspondingByteOfIV = iv[i % iv.length];
-                // Perform bitwise XOR operation
-                paddedPlaintext[i] = (byte) (currentByteOfPaddedPlaintext ^ correspondingByteOfIV);
-            }
-
-            // Encrypt the modified plaintext using ECB
-            byte[] encryptedData = encryptUsingEcb(new String(paddedPlaintext), key, false);
-
-            return encryptedData;
-        } catch (Exception e) {
-            e.printStackTrace();
-            return new byte[0];
+    /**
+     * Realiza una operación XOR a nivel de byte entre dos arrays de bytes.
+     *
+     * @param a El primer array de bytes.
+     * @param b El segundo array de bytes.
+     * @return El resultado de la operación XOR.
+     */
+    private static byte[] xorByteArray(byte[] a, byte[] b) {
+        byte[] result = new byte[a.length];
+        for (int i = 0; i < a.length; i++) {
+            result[i] = (byte) (a[i] ^ b[i]);
         }
+        return result;
+    }
+    /**
+     * Divide una cadena de entrada en bloques del tamaño especificado.
+     *
+     * @param input     La cadena de entrada a dividir.
+     * @param blockSize El tamaño de cada bloque.
+     * @return Un array de cadenas que representa los bloques resultantes.
+     */
+    private static String[] divideStringIntoBlocks(String input, int blockSize) {
+        int blockCount = input.length() / blockSize;
+        String[] blocks = new String[blockCount];
+
+        for (int i = 0; i < blockCount; i++) {
+            int startIndex = i * blockSize;
+            int endIndex = Math.min((i + 1) * blockSize, input.length());
+            blocks[i] = input.substring(startIndex, endIndex);
+        }
+
+        return blocks;
+    }
+    /**
+     * Convierte una cadena de texto en un array de bytes utilizando UTF-8.
+     *
+     * @param input La cadena de texto a convertir.
+     * @return El array de bytes resultante.
+     * @throws UnsupportedEncodingException Si ocurre un error al convertir la cadena.
+     */
+    private static byte[] convertStringToByteArray(String input) throws UnsupportedEncodingException {
+        return input.getBytes(StandardCharsets.UTF_8);
+    }
+    /**
+     * Convierte un array de bytes en una representación de cadena hexadecimal.
+     *
+     * @param byteArray El array de bytes a convertir.
+     * @return La representación de cadena hexadecimal.
+     */
+    private static String byteArrayToString(byte[] byteArray) {
+        StringBuilder result = new StringBuilder();
+        for (byte b : byteArray) {
+            result.append(String.format("%02x:", b));
+        }
+        return result.substring(0, result.length() - 1);
     }
 
+    /**
+     * Convierte un array de bytes en una cadena de texto utilizando UTF-8.
+     *
+     * @param byteArray El array de bytes a convertir.
+     * @return La cadena de texto resultante.
+     * @throws UnsupportedEncodingException Si ocurre un error al convertir el array de bytes.
+     */
+    private static String convertByteArrayToText(byte[] byteArray) throws UnsupportedEncodingException {
+        return new String(byteArray, StandardCharsets.UTF_8);
+    }
+
+    /**
+     * Concatena dos arrays de bytes.
+     *
+     * @param a El primer array de bytes.
+     * @param b El segundo array de bytes.
+     * @return El array de bytes resultante de la concatenación.
+     */
+    private static byte[] concatenateByteArrays(byte[] a, byte[] b) {
+        byte[] result = Arrays.copyOf(a, a.length + b.length);
+        System.arraycopy(b, 0, result, a.length, b.length);
+        return result;
+    }
+
+    /**
+     * Cifra un texto usando el modo CBC (Cipher Block Chaining) del algoritmo AES.
+     *
+     * @param plainText        El texto plano a cifrar.
+     * @param key              La clave secreta para el cifrado.
+     * @param iv               El vector de inicialización (IV) para el modo CBC.
+     * @param debugModeEnabled Indica si se debe habilitar el modo de depuración.
+     * @return El texto cifrado como un array de bytes.
+     */
+    public byte[] encryptUsingCbc(String plainText, SecretKey key, byte[] iv, boolean debugModeEnabled) {
+        try {
+            cipher = Cipher.getInstance("AES/ECB/NoPadding");
+            cipher.init(Cipher.ENCRYPT_MODE, key);
+            String[] blocks = divideStringIntoBlocks(plainText, 16);
+            byte[] result = new byte[0];
+            byte[] lastBlock = iv;
+
+            for (int i = 0; i < blocks.length; i++) {
+                if (debugModeEnabled){
+                    System.out.println("Bloque "+ i + " (texto): " + blocks[i]);
+                }
+
+                byte[] byteArray = convertStringToByteArray(blocks[i]);
+
+                if (debugModeEnabled){
+                    System.out.println("Bloque "+ i + " (hex): " + byteArrayToString(byteArray));
+                    System.out.println("VI: " + byteArrayToString(lastBlock));
+                }
+
+                byteArray = xorByteArray(byteArray, lastBlock);
+
+                if (debugModeEnabled){
+                    System.out.println("Resultado XOR: " + byteArrayToString(byteArray));
+                }
+
+                byte[] encryptedBlock = cipher.doFinal(byteArray);
+                lastBlock = encryptedBlock;
+                result = concatenateByteArrays(result, encryptedBlock);
+            }
+            return result;
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    /**
+     * Descifra un texto usando el modo ECB del algoritmo AES.
+     *
+     * @param cipherText El texto cifrado como array de bytes.
+     * @param key        La clave secreta para el descifrado.
+     * @param padding    Indica si se ha aplicado relleno PKCS5Padding.
+     * @return El texto descifrado.
+     */
     public String decryptUsingEcb(byte[] cipherText, SecretKey key, boolean padding) {
         try {
             if (padding) {
@@ -118,38 +229,51 @@ public class AesCipher {
             return null;
         }
     }
-
-    public String decryptUsingCbc(byte[] encryptedData, SecretKey key, byte[] iv, boolean debugModeEnabled) {
+    /**
+     * Descifra un texto usando el modo CBC del algoritmo AES.
+     *
+     * @param cipherText       El texto cifrado como array de bytes.
+     * @param key              La clave secreta para el descifrado.
+     * @param iv               El vector de inicialización (IV) para el modo CBC.
+     * @param debugModeEnabled Indica si se debe habilitar el modo de depuración.
+     * @return El texto descifrado.
+     */
+    public static String decryptUsingCbc(byte[] cipherText, SecretKey key, byte[] iv, boolean debugModeEnabled) {
         try {
-            // Convert IV to IvParameterSpec
-            IvParameterSpec ivParameterSpec = new IvParameterSpec(iv);
+            Cipher cipher = Cipher.getInstance("AES/ECB/NoPadding");
+            cipher.init(Cipher.DECRYPT_MODE, key);
+            byte[] result = new byte[0];
+            byte[] lastBlock = iv;
 
-            // Decrypt the encrypted data using ECB
-            byte[] decryptedData = decryptUsingEcb(encryptedData, key, false).getBytes();
+            for (int i = 0; i < cipherText.length / 16; i++) {
+                byte[] encryptedBlock = Arrays.copyOfRange(cipherText, i * 16, (i + 1) * 16);
 
-            // XOR decrypted data with IV to reverse the operation
-            byte currentByteOfDecryptedData = 0;
-            byte correspondingByteOfIV = 0;
+                if (debugModeEnabled){
+                    String base64EncryptedBlock = Base64.getEncoder().encodeToString(encryptedBlock);
+                    System.out.println("Bloque " + i + " cifrado (texto): "  + base64EncryptedBlock );
+                    System.out.println("Bloque " + i + " cifrado (hex): " + byteArrayToString(encryptedBlock));
+                }
 
-            for (int i = 0; i < decryptedData.length; i++) {
-                currentByteOfDecryptedData = decryptedData[i];
-                correspondingByteOfIV = iv[i % iv.length];
-                // Perform bitwise XOR operation
-                decryptedData[i] = (byte) (currentByteOfDecryptedData ^ correspondingByteOfIV);
+                byte[] decryptedBlock = cipher.doFinal(encryptedBlock);
 
+                if (debugModeEnabled){
+                    System.out.println("Bloque " + i + " descifrado (hex): " + byteArrayToString(decryptedBlock));
+                }
+
+                decryptedBlock = xorByteArray(decryptedBlock, lastBlock);
+
+                if (debugModeEnabled){
+                    System.out.println("Resultado XOR: " + byteArrayToString(decryptedBlock));
+                }
+
+                lastBlock = encryptedBlock; // Use the encrypted block as the IV for the next iteration
+                result = concatenateByteArrays(result, decryptedBlock);
             }
-
-            // Convert the decrypted bytes to a String
-            return new String(decryptedData, StandardCharsets.UTF_8).trim();
-            
+            return new String(result, StandardCharsets.US_ASCII);
         } catch (Exception e) {
             e.printStackTrace();
-            return "";
         }
-    }
-
-    public static String byteToHex(byte value) {
-        return String.format("%02X", value);
+        return null;
     }
 
     // Helper method to convert a byte array to a hexadecimal string
@@ -196,15 +320,14 @@ public class AesCipher {
         } catch (Exception e) {
             e.printStackTrace();
         }
-
     }
 
-    public void testCbc(){
+    public void testCbc() {
         try {
             System.out.println("Test AES en modo CBC");
             String userKey = "dostrescua";
             int keyLength = 128;
-            byte[] iv = {67, 78, 31, 123, 3, 99, 34, 33, 21, 67, 78, 31, 123, 3, 99, 34, 33, 21};
+            byte[] iv = {67, 78, 31, -47, 99, 34, 33, 21, 67, 78, 31, -47, 99, 34, 33, 21};
 
             SecretKey secretKey = generateKey(userKey, keyLength);
             String hexKey = bytesToHex(secretKey.getEncoded());
@@ -215,15 +338,9 @@ public class AesCipher {
             System.out.println("Plain text: " + plainText);
 
             byte[] encryptedText = encryptUsingCbc(plainText, secretKey, iv, true);
+            String decryptedText = decryptUsingCbc(encryptedText, secretKey, iv, true);
 
-            // Convert the encrypted bytes to a Base64-encoded string for easier display
-            String base64EncryptedText = Base64.getEncoder().encodeToString(encryptedText);
-            System.out.println("Encrypted Text: " + base64EncryptedText);
-            System.out.println("Encrypted Text (hex): " + bytesToHex(encryptedText));
-
-            // Test decryption
-            String decryptedText = decryptUsingCbc(Base64.getDecoder().decode(base64EncryptedText), secretKey, iv, true);
-            System.out.println("Decrypted Text: " + decryptedText);
+            System.out.println(decryptedText);
 
         } catch (Exception e) {
             e.printStackTrace();
@@ -233,7 +350,7 @@ public class AesCipher {
     public static void main(String[] args) {
         AesCipher aesCipher = new AesCipher();
         aesCipher.testCbc();
-        aesCipher.testEcb();
+        //aesCipher.testEcb();
     }
 
 }
